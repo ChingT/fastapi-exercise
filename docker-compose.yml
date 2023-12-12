@@ -1,0 +1,27 @@
+version: "3.7"
+
+services:
+  postgres:
+    restart: unless-stopped
+    image: postgres:16.0
+    volumes:
+      - postgres_db:/var/lib/postgresql/data
+    env_file:
+      - .env
+
+  backend:
+    depends_on:
+      - postgres
+    restart: "unless-stopped"
+    build:
+      context: ./backend
+      dockerfile: backend.dockerfile
+    env_file:
+      - .env
+    ports:
+      - 8000:8000
+    volumes:
+      - ./backend/app:/app
+
+volumes:
+  postgres_db:
