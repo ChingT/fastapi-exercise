@@ -2,12 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 
 from app.api.deps import CurrentUser, SessionDep, get_current_superuser
 from app.crud.user import crud_user
-from app.schemas.user import (
-    UserCreateRequest,
-    UserResponse,
-    UserUpdatePasswordRequest,
-    UserUpdateRequest,
-)
+from app.schemas.user import UserCreateRequest, UserResponse, UserUpdateRequest
 
 router = APIRouter()
 
@@ -27,7 +22,7 @@ def update_current_user(
 
 
 @router.delete("/me", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_current_user(db: SessionDep, current_user: CurrentUser):
+def delete_current_user(db: SessionDep, current_user: CurrentUser):
     """Delete current user."""
     crud_user.delete(db, id=current_user.id)
 
@@ -54,13 +49,3 @@ def read_user(db: SessionDep, user_id: int) -> UserResponse:
     if db_obj is None:
         raise HTTPException(status_code=404, detail="User not found")
     return db_obj
-
-
-@router.post("/reset-password", status_code=status.HTTP_201_CREATED)
-async def reset_current_user_password(
-    db: SessionDep,
-    current_user: CurrentUser,
-    updated_password: UserUpdatePasswordRequest,
-) -> UserResponse:
-    """Update current user password."""
-    return crud_user.update(db, db_obj=current_user, obj_in=updated_password)

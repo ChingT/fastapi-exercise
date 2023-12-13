@@ -1,21 +1,17 @@
-import time
 from typing import Annotated
 
-import jwt
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
-from sqlalchemy import select
 
-from app.api.deps import SessionDep
-from app.core.config import settings
-from app.core.security import (
-    JWT_ALGORITHM,
-    JWTTokenPayload,
-    generate_access_token_response,
-    verify_password,
+from app.api.deps import CurrentUser, SessionDep
+from app.core.token_utils import (
+    credentials_exception,
+    decode_token,
+    generate_tokens_response,
 )
-from app.models import User
-from app.schemas.auth import AccessTokenResponse, RefreshTokenRequest
+from app.crud.user import crud_user
+from app.schemas.auth import RefreshTokenRequest, TokensResponse
+from app.schemas.user import UserResponse, UserUpdatePasswordRequest
 
 router = APIRouter()
 
@@ -23,55 +19,36 @@ FormDataDep = Annotated[OAuth2PasswordRequestForm, Depends()]
 
 
 @router.post("/access-token", status_code=status.HTTP_201_CREATED)
-def login_access_token(db: SessionDep, form_data: FormDataDep) -> AccessTokenResponse:
+def login_access_token(db: SessionDep, form_data: FormDataDep) -> TokensResponse:
     """Get an access token for future requests using username and password."""
-    result = db.execute(select(User).where(User.email == form_data.username))
-    user = result.scalars().first()
-
-    if user is None:
+    user = crud_user.authenticate(
+        db, email=form_data.username, password=form_data.password
+    )
+    if not user:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail="Incorrect email"
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Incorrect email or password",
         )
-
-    if not verify_password(form_data.password, user.hashed_password):
+    if not user.is_active:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail="Incorrect password"
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Inactive user"
         )
-
-    return generate_access_token_response(user.id)
+    return generate_tokens_response(user.id)
 
 
 @router.post("/refresh-token", status_code=status.HTTP_201_CREATED)
-def refresh_token(db: SessionDep, token: RefreshTokenRequest) -> AccessTokenResponse:
-    """Get an access token for future requests using refresh token."""
-    try:
-        payload = jwt.decode(
-            token.refresh_token, settings.SECRET_KEY, algorithms=[JWT_ALGORITHM]
-        )
-    except jwt.DecodeError as err:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Could not validate credentials. Decode error.",
-        ) from err
+def refresh_token(db: SessionDep, token: RefreshTokenRequest) -> TokensResponse:
+    """Get an access token using a refresh token."""
+    if user := decode_token(db, token.refresh_token, is_refresh=True):
+        return generate_tokens_response(user.id)
+    raise credentials_exception
 
-    # JWT guarantees payload will be unchanged (and thus valid), no errors here
-    token_data = JWTTokenPayload(**payload)
-    if not token_data.refresh:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Could not validate credentials. Cannot use access token.",
-        )
-    now = int(time.time())
-    if now < token_data.issued_at or now > token_data.expires_at:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Could not validate credentials, token expired or not yet valid",
-        )
 
-    user = db.get(User, token_data.sub)
-    if user is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
-        )
-
-    return generate_access_token_response(user.id)
+@router.post("/reset-password", status_code=status.HTTP_201_CREATED)
+def reset_password(
+    db: SessionDep,
+    current_user: CurrentUser,
+    updated_password: UserUpdatePasswordRequest,
+) -> UserResponse:
+    """Update current user password."""
+    return crud_user.update(db, db_obj=current_user, obj_in=updated_password)
