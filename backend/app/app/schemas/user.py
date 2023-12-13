@@ -1,11 +1,16 @@
-from pydantic import BaseModel, ConfigDict, EmailStr
+from pydantic import BaseModel, ConfigDict, EmailStr, computed_field
 
 from app.schemas.item import ItemResponse
 
 
 # Shared properties
 class UserBase(BaseModel):
-    is_superuser: bool = False
+    first_name: str | None = None
+    last_name: str | None = None
+
+    @computed_field
+    def full_name(self) -> str:
+        return f"{self.first_name} {self.last_name}"
 
 
 class UserCreateRequest(UserBase):
@@ -14,8 +19,7 @@ class UserCreateRequest(UserBase):
 
 
 class UserUpdateRequest(UserBase):
-    first_name: str | None = None
-    last_name: str | None = None
+    pass
 
 
 class UserUpdatePasswordRequest(BaseModel):
@@ -30,4 +34,5 @@ class UserResponse(UserBase):
     first_name: str
     last_name: str
     is_active: bool
+    is_superuser: bool = False
     items: list[ItemResponse]

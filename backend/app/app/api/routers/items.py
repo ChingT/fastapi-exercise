@@ -1,13 +1,13 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, HTTPException, status
 
-from app.api.deps import CurrentUser, SessionDep, get_current_superuser
+from app.api.deps import CurrentUser, SessionDep
 from app.crud.item import crud_item
-from app.schemas.item import ItemCreateRequest, ItemResponse
+from app.schemas.item import ItemCreateRequest, ItemResponse, ItemUpdateRequest
 
 router = APIRouter()
 
 
-@router.post("/user", status_code=status.HTTP_201_CREATED)
+@router.post("/", status_code=status.HTTP_201_CREATED)
 def create_item_for_user(
     db: SessionDep, item: ItemCreateRequest, current_user: CurrentUser
 ) -> ItemResponse:
@@ -15,27 +15,65 @@ def create_item_for_user(
     return crud_item.create_with_owner(db, obj_in=obj_in)
 
 
-@router.get("/user")
-def read_items_from_user(
+@router.get("/")
+def read_items(
     db: SessionDep, current_user: CurrentUser, skip: int = 0, limit: int = 100
 ) -> list[ItemResponse]:
-    return crud_item.list_by_owner(db, owner_id=current_user.id, skip=skip, limit=limit)
-
-
-@router.get("/all", dependencies=[Depends(get_current_superuser)])
-def read_items(db: SessionDep, skip: int = 0, limit: int = 100) -> list[ItemResponse]:
-    return crud_item.list(db, skip=skip, limit=limit)
+    """Retrieve items. The user can only retrieve their own items."""
+    if current_user.is_superuser:
+        return crud_item.list(db, skip=skip, limit=limit)
+    return crud_item.list_by_owner(db, user_id=current_user.id, skip=skip, limit=limit)
 
 
 @router.get("/{item_id}")
 def read_item(db: SessionDep, current_user: CurrentUser, item_id: int) -> ItemResponse:
-    db_obj = crud_item.get(db, id=item_id)
-    if db_obj is None:
+    """Retrieve item by ID. The user can only retrieve their own item."""
+    item = crud_item.get(db, id=item_id)
+    if not item:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Item not found."
         )
-    if db_obj.owner_id != current_user.id:
+    if not current_user.is_superuser and item.owner_id != current_user.id:
         raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN, detail="This is not your item."
+            status_code=status.HTTP_403_FORBIDDEN, detail="Not enough permissions"
         )
-    return db_obj
+    return item
+
+
+@router.put("/{item_id}")
+def update_item(
+    *,
+    db: SessionDep,
+    current_user: CurrentUser,
+    item_id: int,
+    item_in: ItemUpdateRequest,
+) -> ItemResponse:
+    """Update an item."""
+    item = crud_item.get(db, id=item_id)
+    if not item:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Item not found."
+        )
+    if not current_user.is_superuser and item.owner_id != current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail="Not enough permissions"
+        )
+
+    return crud_item.update(db, db_obj=item, obj_in=item_in)
+
+
+@router.delete("/{item_id}")
+def delete_item(
+    db: SessionDep, current_user: CurrentUser, item_id: int
+) -> ItemResponse:
+    """Delete an item."""
+    item = crud_item.get(db, id=item_id)
+    if not item:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Item not found."
+        )
+    if not current_user.is_superuser and item.owner_id != current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail="Not enough permissions"
+        )
+    return crud_item.delete(db, id=item_id)
