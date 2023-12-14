@@ -1,5 +1,6 @@
 from typing import Any, Generic, TypeVar
 
+from fastapi import Query
 from fastapi.encoders import jsonable_encoder
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
@@ -21,7 +22,7 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         self.model = model
 
     def list(
-        self, db: Session, *, offset: int = 0, limit: int = 100
+        self, db: Session, *, offset: int = 0, limit: int = Query(default=100, le=100)
     ) -> list[ModelType] | None:
         return db.query(self.model).offset(offset).limit(limit).all()
 

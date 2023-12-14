@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, HTTPException, Query, status
 
 from app.api.deps import CurrentUser, SessionDep
 from app.crud.item import crud_item
@@ -17,7 +17,10 @@ def create_item_for_user(
 
 @router.get("/")
 def read_items(
-    db: SessionDep, current_user: CurrentUser, offset: int = 0, limit: int = 100
+    db: SessionDep,
+    current_user: CurrentUser,
+    offset: int = 0,
+    limit: int = Query(default=100, le=100),
 ) -> list[ItemResponse]:
     """Retrieve items. The user can only retrieve their own items."""
     if current_user.is_superuser:

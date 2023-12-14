@@ -1,3 +1,4 @@
+from fastapi import Query
 from fastapi.encoders import jsonable_encoder
 from sqlalchemy.orm import Session
 
@@ -16,7 +17,12 @@ class CRUDItem(CRUDBase[Item, ItemCreateRequest, ItemUpdateRequest]):
         return db_obj
 
     def list_by_owner(
-        self, db: Session, *, user_id: int, offset: int = 0, limit: int = 100
+        self,
+        db: Session,
+        *,
+        user_id: int,
+        offset: int = 0,
+        limit: int = Query(default=100, le=100),
     ) -> list[Item]:
         return (
             db.query(Item)

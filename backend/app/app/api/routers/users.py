@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 
 from app.api.deps import CurrentUser, SessionDep, get_current_superuser
 from app.crud.user import crud_user
@@ -39,7 +39,9 @@ def create_new_user(db: SessionDep, user: UserCreateRequest) -> UserResponse:
 
 
 @router.get("/", dependencies=[Depends(get_current_superuser)])
-def read_users(db: SessionDep, offset: int = 0, limit: int = 100) -> list[UserResponse]:
+def read_users(
+    db: SessionDep, offset: int = 0, limit: int = Query(default=100, le=100)
+) -> list[UserResponse]:
     return crud_user.list(db, offset=offset, limit=limit)
 
 
