@@ -39,8 +39,8 @@ def create_new_user(db: SessionDep, user: UserCreateRequest) -> UserResponse:
 
 
 @router.get("/", dependencies=[Depends(get_current_superuser)])
-def read_users(db: SessionDep, skip: int = 0, limit: int = 100) -> list[UserResponse]:
-    return crud_user.list(db, skip=skip, limit=limit)
+def read_users(db: SessionDep, offset: int = 0, limit: int = 100) -> list[UserResponse]:
+    return crud_user.list(db, offset=offset, limit=limit)
 
 
 @router.get("/{user_id}", dependencies=[Depends(get_current_superuser)])

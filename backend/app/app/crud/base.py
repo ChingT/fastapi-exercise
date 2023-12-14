@@ -21,9 +21,9 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         self.model = model
 
     def list(
-        self, db: Session, *, skip: int = 0, limit: int = 100
+        self, db: Session, *, offset: int = 0, limit: int = 100
     ) -> list[ModelType] | None:
-        return db.query(self.model).offset(skip).limit(limit).all()
+        return db.query(self.model).offset(offset).limit(limit).all()
 
     def get(self, db: Session, *, id: int) -> ModelType | None:
         return db.query(self.model).get(id)
@@ -41,7 +41,7 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         db: Session,
         *,
         db_obj: ModelType,
-        obj_in: UpdateSchemaType | dict[str, Any]
+        obj_in: UpdateSchemaType | dict[str, Any],
     ) -> ModelType:
         obj_data = jsonable_encoder(db_obj)
         if isinstance(obj_in, dict):

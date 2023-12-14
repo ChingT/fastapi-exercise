@@ -17,12 +17,14 @@ def create_item_for_user(
 
 @router.get("/")
 def read_items(
-    db: SessionDep, current_user: CurrentUser, skip: int = 0, limit: int = 100
+    db: SessionDep, current_user: CurrentUser, offset: int = 0, limit: int = 100
 ) -> list[ItemResponse]:
     """Retrieve items. The user can only retrieve their own items."""
     if current_user.is_superuser:
-        return crud_item.list(db, skip=skip, limit=limit)
-    return crud_item.list_by_owner(db, user_id=current_user.id, skip=skip, limit=limit)
+        return crud_item.list(db, offset=offset, limit=limit)
+    return crud_item.list_by_owner(
+        db, user_id=current_user.id, offset=offset, limit=limit
+    )
 
 
 @router.get("/{item_id}")

@@ -5,7 +5,9 @@ from sqlalchemy.orm import sessionmaker
 from app.core.config import settings
 
 engine = create_engine(
-    settings.sqlite_database_url, connect_args={"check_same_thread": False}
+    settings.sqlite_database_url,
+    connect_args={"check_same_thread": False},
+    echo=settings.ENVIRONMENT == "DEV",
 )
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 

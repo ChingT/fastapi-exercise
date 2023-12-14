@@ -16,12 +16,12 @@ class CRUDItem(CRUDBase[Item, ItemCreateRequest, ItemUpdateRequest]):
         return db_obj
 
     def list_by_owner(
-        self, db: Session, *, user_id: int, skip: int = 0, limit: int = 100
+        self, db: Session, *, user_id: int, offset: int = 0, limit: int = 100
     ) -> list[Item]:
         return (
             db.query(Item)
             .filter(Item.owner_id == user_id)
-            .offset(skip)
+            .offset(offset)
             .limit(limit)
             .all()
         )
