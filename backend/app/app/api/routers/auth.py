@@ -10,8 +10,8 @@ from app.core.token_utils import (
     generate_tokens_response,
 )
 from app.crud.user import crud_user
+from app.models.auth import RefreshTokenRequest, TokensResponse
 from app.models.user import UserOut, UserUpdatePassword
-from app.schemas.auth import RefreshTokenRequest, TokensResponse
 
 router = APIRouter()
 

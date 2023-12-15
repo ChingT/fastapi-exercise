@@ -1,13 +1,14 @@
 from datetime import datetime
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import ConfigDict
+from sqlmodel import SQLModel
 
 
-class RefreshTokenRequest(BaseModel):
+class RefreshTokenRequest(SQLModel):
     refresh_token: str
 
 
-class TokensResponse(BaseModel):
+class TokensResponse(SQLModel):
     model_config = ConfigDict(from_attributes=True)
 
     token_type: str
@@ -15,7 +16,7 @@ class TokensResponse(BaseModel):
     refresh_token: str
 
 
-class JWTTokenPayload(BaseModel):
+class JWTTokenPayload(SQLModel):
     sub: str | int
     exp: datetime
     nbf: datetime
