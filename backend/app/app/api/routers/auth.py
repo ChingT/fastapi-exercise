@@ -9,9 +9,16 @@ from app.core.token_utils import (
 from app.crud.user import crud_user
 from app.models.auth import RefreshTokenRequest, TokensResponse
 from app.models.msg import Msg
-from app.models.user import User, UserRecoverPassword, UserUpdatePassword
+from app.models.user import (
+    User,
+    UserCreate,
+    UserOut,
+    UserRecoverPassword,
+    UserUpdatePassword,
+)
 from app.utils import (
     generate_password_reset_token,
+    send_new_account_email,
     send_reset_password_email,
     verify_password_reset_token,
 )
@@ -44,6 +51,18 @@ def refresh_token(db: SessionDep, token: RefreshTokenRequest) -> TokensResponse:
     if db.get(User, user_id):
         return generate_tokens_response(user_id)
     raise credentials_exception
+
+
+@router.post("/registration")
+def register_user(db: SessionDep, user_in: UserCreate) -> UserOut:
+    """Register new user."""
+    if crud_user.get_by_email(db, email=user_in.email):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Email already registered"
+        )
+    user = crud_user.create(db, obj_in=user_in)
+    send_new_account_email(email_to=user_in.email)
+    return user
 
 
 @router.post("/password-recovery")

@@ -25,6 +25,7 @@ def update_current_user(
 def delete_current_user(db: SessionDep, current_user: CurrentUser):
     """Delete current user."""
     crud_user.delete(db, id=current_user.id)
+    return current_user
 
 
 @router.post(
@@ -32,9 +33,12 @@ def delete_current_user(db: SessionDep, current_user: CurrentUser):
     dependencies=[Depends(get_current_superuser)],
     status_code=status.HTTP_201_CREATED,
 )
-def create_new_user(db: SessionDep, user: UserCreate) -> UserOut:
+def create_user(db: SessionDep, user: UserCreate) -> UserOut:
+    """Only superuser can perform this operation."""
     if crud_user.get_by_email(db, email=user.email):
-        raise HTTPException(status_code=400, detail="Email already registered")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Email already registered"
+        )
     return crud_user.create(db, obj_in=user)
 
 
