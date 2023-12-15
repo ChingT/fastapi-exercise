@@ -23,7 +23,7 @@ TokenDep = Annotated[str, Depends(reusable_oauth2)]
 
 
 def get_current_user(db: SessionDep, token: TokenDep) -> User:
-    if user_id := decode_token( token):
+    if user_id := decode_token(token):
         return db.get(User, user_id)
     raise credentials_exception
 

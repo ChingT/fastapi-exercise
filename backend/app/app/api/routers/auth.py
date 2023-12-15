@@ -1,9 +1,9 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Body, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
 
-from app.api.deps import CurrentUser, SessionDep
+from app.api.deps import SessionDep
 from app.core.token_utils import (
     credentials_exception,
     decode_token,
@@ -11,7 +11,13 @@ from app.core.token_utils import (
 )
 from app.crud.user import crud_user
 from app.models.auth import RefreshTokenRequest, TokensResponse
-from app.models.user import UserOut, UserUpdatePassword
+from app.models.msg import Msg
+from app.models.user import User, UserRecoverPassword, UserUpdatePassword
+from app.utils import (
+    generate_password_reset_token,
+    send_reset_password_email,
+    verify_password_reset_token,
+)
 
 router = APIRouter()
 
@@ -45,11 +51,40 @@ def refresh_token(db: SessionDep, token: RefreshTokenRequest) -> TokensResponse:
     raise credentials_exception
 
 
-@router.post("/reset-password", status_code=status.HTTP_201_CREATED)
+@router.post("/password-recovery")
+def recover_password(db: SessionDep, data: UserRecoverPassword) -> Msg:
+    """Password Recovery."""
+    email = data.email
+    user = crud_user.get_by_email(db, email=email)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="The user with this email does not exist in the system.",
+        )
+    password_reset_token = generate_password_reset_token(email=email)
+    send_reset_password_email(email_to=email, token=password_reset_token)
+    return {"msg": "Password recovery email sent"}
+
+
+@router.post("/reset-password/")
 def reset_password(
-    db: SessionDep,
-    current_user: CurrentUser,
-    updated_password: UserUpdatePassword,
-) -> UserOut:
-    """Update current user password."""
-    return crud_user.update(db, db_obj=current_user, obj_in=updated_password)
+    db: SessionDep, token: str = Body(...), new_password: str = Body(...)
+) -> Msg:
+    """Reset password."""
+    email = verify_password_reset_token(token)
+    if not email:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid token"
+        )
+    user = crud_user.get_by_email(db, email=email)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="The user with this username does not exist in the system.",
+        )
+    if not user.is_active:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Inactive user"
+        )
+    crud_user.update(db, db_obj=user, obj_in=UserUpdatePassword(password=new_password))
+    return {"msg": "Password updated successfully"}

@@ -32,6 +32,10 @@ class UserUpdatePassword(SQLModel):
     password: str
 
 
+class UserRecoverPassword(SQLModel):
+    email: EmailStr
+
+
 class User(UserBase, table=True):
     id: int | None = Field(default=None, primary_key=True)
     hashed_password: str
