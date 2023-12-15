@@ -39,8 +39,9 @@ def login_access_token(db: SessionDep, form_data: FormDataDep) -> TokensResponse
 @router.post("/refresh-token", status_code=status.HTTP_201_CREATED)
 def refresh_token(db: SessionDep, token: RefreshTokenRequest) -> TokensResponse:
     """Get an access token using a refresh token."""
-    if user := decode_token(db, token.refresh_token, is_refresh=True):
-        return generate_tokens_response(user.id)
+    user_id = decode_token(token.refresh_token, is_refresh=True)
+    if db.get(User, user_id):
+        return generate_tokens_response(user_id)
     raise credentials_exception
 
 

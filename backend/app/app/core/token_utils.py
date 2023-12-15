@@ -2,11 +2,9 @@ import datetime
 
 from fastapi import HTTPException, status
 from jose import JWTError, jwt
-from sqlalchemy.orm import Session
 
 from app.core.config import settings
 from app.models.auth import JWTTokenPayload, TokensResponse
-from app.models.user import User
 
 JWT_ALGORITHM = "HS256"
 
@@ -19,9 +17,7 @@ credentials_exception = HTTPException(
 
 def generate_tokens_response(subject: str | int) -> TokensResponse:
     """Generate tokens and return AccessTokenResponse."""
-    access_token = create_token(
-        subject, settings.ACCESS_TOKEN_EXPIRE_MINUTES, refresh=False
-    )
+    access_token = create_token(subject, settings.ACCESS_TOKEN_EXPIRE_MINUTES)
     refresh_token = create_token(
         subject, settings.REFRESH_TOKEN_EXPIRE_MINUTES, refresh=True
     )
@@ -30,7 +26,7 @@ def generate_tokens_response(subject: str | int) -> TokensResponse:
     )
 
 
-def create_token(sub: str | int, exp_mins: float, refresh: bool) -> str:
+def create_token(sub: str | int, exp_mins: float, refresh: bool = False) -> str:
     """Create jwt access or refresh token for user.
 
     Args:
@@ -48,8 +44,8 @@ def create_token(sub: str | int, exp_mins: float, refresh: bool) -> str:
     return jwt.encode(claims, settings.SECRET_KEY, JWT_ALGORITHM)
 
 
-def decode_token(db: Session, token: str, is_refresh: bool):
-    """Decode JWT token and return the user object."""
+def decode_token(token: str, is_refresh: bool = False) -> str:
+    """Decode JWT token and return the subject."""
     try:
         payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[JWT_ALGORITHM])
     except JWTError:
@@ -59,7 +55,4 @@ def decode_token(db: Session, token: str, is_refresh: bool):
     if is_refresh != token_data.refresh:
         return None
 
-    user = db.get(User, token_data.sub)
-    if user is None:
-        return None
-    return user
+    return token_data.sub
