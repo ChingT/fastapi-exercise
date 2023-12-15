@@ -26,7 +26,8 @@ from functools import cached_property
 from pathlib import Path
 from typing import Literal
 
-from pydantic import AnyHttpUrl, EmailStr, PostgresDsn, computed_field
+from pydantic import AnyHttpUrl, EmailStr, PostgresDsn, computed_field, field_validator
+from pydantic_core.core_schema import FieldValidationInfo
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 PROJECT_DIR = Path(__file__).parent.parent.parent
@@ -43,7 +44,8 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 11520  # 8 days
     REFRESH_TOKEN_EXPIRE_MINUTES: int = 40320  # 28 days
     BACKEND_CORS_ORIGINS: list[AnyHttpUrl] = []
-    ALLOWED_HOSTS: list[str] = ["localhost", "127.0.0.1"]
+    ALLOWED_HOSTS: list[str] = []
+    SERVER_HOST: AnyHttpUrl
 
     # PROJECT NAME, VERSION AND DESCRIPTION
     PROJECT_NAME: str = PYPROJECT_CONTENT["name"]
@@ -78,6 +80,26 @@ class Settings(BaseSettings):
     @cached_property
     def sqlite_database_url(self) -> str:
         return "sqlite:///./app.sqlite"
+
+    SMTP_TLS: bool = True
+    SMTP_PORT: int | None = None
+    SMTP_HOST: str | None = None
+    SMTP_USER: str | None = None
+    SMTP_PASSWORD: str | None = None
+    EMAILS_FROM_EMAIL: EmailStr | None = None
+    EMAILS_FROM_NAME: str | None = None
+
+    EMAIL_RESET_TOKEN_EXPIRE_HOURS: int = 48
+    EMAIL_TEMPLATES_DIR: str = "app/email-templates/build_html"
+    EMAILS_ENABLED: bool = False
+
+    @field_validator("EMAILS_ENABLED", mode="before")
+    def get_emails_enabled(cls, v: bool, info: FieldValidationInfo) -> bool:
+        return bool(
+            info.data["SMTP_HOST"]
+            and info.data["SMTP_PORT"]
+            and info.data["EMAILS_FROM_EMAIL"]
+        )
 
     model_config = SettingsConfigDict(
         env_file=f"{PROJECT_DIR}/.env", case_sensitive=True
