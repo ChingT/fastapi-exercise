@@ -1,7 +1,7 @@
 from typing import Annotated
 
 from fastapi import Depends, HTTPException, status
-from fastapi.security import OAuth2PasswordBearer
+from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 
 from app.core.token_utils import credentials_exception, decode_token
@@ -20,6 +20,7 @@ def get_db():
 reusable_oauth2 = OAuth2PasswordBearer(tokenUrl="auth/access-token")
 SessionDep = Annotated[Session, Depends(get_db)]
 TokenDep = Annotated[str, Depends(reusable_oauth2)]
+FormDataDep = Annotated[OAuth2PasswordRequestForm, Depends()]
 
 
 def get_current_user(db: SessionDep, token: TokenDep) -> User:

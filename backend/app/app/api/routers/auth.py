@@ -1,9 +1,6 @@
-from typing import Annotated
+from fastapi import APIRouter, Body, HTTPException, status
 
-from fastapi import APIRouter, Body, Depends, HTTPException, status
-from fastapi.security import OAuth2PasswordRequestForm
-
-from app.api.deps import SessionDep
+from app.api.deps import FormDataDep, SessionDep
 from app.core.token_utils import (
     credentials_exception,
     decode_token,
@@ -20,8 +17,6 @@ from app.utils import (
 )
 
 router = APIRouter()
-
-FormDataDep = Annotated[OAuth2PasswordRequestForm, Depends()]
 
 
 @router.post("/access-token", status_code=status.HTTP_201_CREATED)
