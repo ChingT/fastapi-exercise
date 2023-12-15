@@ -5,7 +5,7 @@ from jose import JWTError, jwt
 from sqlalchemy.orm import Session
 
 from app.core.config import settings
-from app.models import User
+from app.models.user import User
 from app.schemas.auth import JWTTokenPayload, TokensResponse
 
 JWT_ALGORITHM = "HS256"

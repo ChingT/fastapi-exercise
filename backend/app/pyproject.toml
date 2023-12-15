@@ -54,7 +54,7 @@ testpaths = ["app/tests"]
 [tool.ruff]
 target-version = "py312"
 line-length = 88
-extend-exclude = ["alembic/*"]
+extend-exclude = ["alembic/*", "__init__.py"]
 
 
 [tool.ruff.lint]

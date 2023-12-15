@@ -3,7 +3,7 @@ import logging
 from app.core.config import settings
 from app.crud.user import crud_user
 from app.db.database import SessionLocal
-from app.schemas.user import UserCreateRequest
+from app.models.user import UserCreate
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -20,7 +20,7 @@ def main() -> None:
         logging.info("Superuser %s exists in database", user)
         return
 
-    new_user = UserCreateRequest(
+    new_user = UserCreate(
         email=settings.FIRST_SUPERUSER_EMAIL, password=settings.FIRST_SUPERUSER_PASSWORD
     )
     user = crud_user.create(db=db, obj_in=new_user, is_superuser=True)

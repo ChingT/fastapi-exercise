@@ -10,8 +10,8 @@ from app.core.token_utils import (
     generate_tokens_response,
 )
 from app.crud.user import crud_user
+from app.models.user import UserOut, UserUpdatePassword
 from app.schemas.auth import RefreshTokenRequest, TokensResponse
-from app.schemas.user import UserResponse, UserUpdatePasswordRequest
 
 router = APIRouter()
 
@@ -48,7 +48,7 @@ def refresh_token(db: SessionDep, token: RefreshTokenRequest) -> TokensResponse:
 def reset_password(
     db: SessionDep,
     current_user: CurrentUser,
-    updated_password: UserUpdatePasswordRequest,
-) -> UserResponse:
+    updated_password: UserUpdatePassword,
+) -> UserOut:
     """Update current user password."""
     return crud_user.update(db, db_obj=current_user, obj_in=updated_password)

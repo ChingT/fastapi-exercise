@@ -1,9 +1,10 @@
-import os
 from logging.config import fileConfig
 
 from sqlalchemy import engine_from_config, pool
+from sqlmodel import SQLModel
 
 from alembic import context
+from app.core.config import settings
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -17,10 +18,9 @@ fileConfig(config.config_file_name)  # type: ignore
 # for 'autogenerate' support
 # from myapp import mymodel
 # target_metadata = mymodel.Base.metadata
-from app.models import Base  # noqa
+from app.models import *  # noqa
 
-target_metadata = Base.metadata
-
+target_metadata = SQLModel.metadata
 # other values from the config, defined by the needs of env.py,
 # can be acquired:
 # my_important_option = config.get_main_option("my_important_option")
@@ -28,13 +28,7 @@ target_metadata = Base.metadata
 
 
 def get_url():
-    return "sqlite:///./app.sqlite"
-
-    user = os.getenv("POSTGRES_USER", "postgres")
-    password = os.getenv("POSTGRES_PASSWORD", "")
-    server = os.getenv("POSTGRES_SERVER", "db")
-    db = os.getenv("POSTGRES_DB", "app")
-    return f"postgresql+psycopg://{user}:{password}@{server}/{db}"
+    return settings.sqlite_database_url
 
 
 def run_migrations_offline():

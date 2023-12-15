@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 
 from app.core.token_utils import credentials_exception, decode_token
 from app.db.database import SessionLocal
-from app.models import User
+from app.models.user import User
 
 
 def get_db():

@@ -3,12 +3,11 @@ from fastapi.encoders import jsonable_encoder
 from sqlalchemy.orm import Session
 
 from app.crud.base import CRUDBase
-from app.models import Item
-from app.schemas.item import ItemCreateRequest, ItemUpdateRequest
+from app.models.item import Item, ItemCreate, ItemUpdate
 
 
-class CRUDItem(CRUDBase[Item, ItemCreateRequest, ItemUpdateRequest]):
-    def create_with_owner(self, db: Session, *, obj_in: ItemCreateRequest) -> Item:
+class CRUDItem(CRUDBase[Item, ItemCreate, ItemUpdate]):
+    def create_with_owner(self, db: Session, *, obj_in: ItemCreate) -> Item:
         obj_in_data = jsonable_encoder(obj_in)
         db_obj = Item(**obj_in_data)
         db.add(db_obj)
