@@ -25,7 +25,11 @@ FormDataDep = Annotated[OAuth2PasswordRequestForm, Depends()]
 
 def get_current_user(db: SessionDep, token: TokenDep) -> User:
     if user_id := decode_token(token):
-        return db.get(User, user_id)
+        user = db.get(User, user_id)
+        if not user:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST, detail="User not found"
+            )
     raise credentials_exception
 
 
