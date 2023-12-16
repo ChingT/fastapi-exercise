@@ -25,3 +25,4 @@ class Item(ItemBase, table=True):
 
 class ItemOut(ItemBase):
     id: int
+    owner_id: int
