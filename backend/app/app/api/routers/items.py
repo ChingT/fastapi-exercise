@@ -1,6 +1,7 @@
-from fastapi import APIRouter, HTTPException, Query, status
+from fastapi import APIRouter, Query, status
 
 from app.api.deps import CurrentUser, SessionDep
+from app.api.utils import item_not_found_exception, no_permissions_exception
 from app.crud.item import crud_item
 from app.models.item import ItemCreate, ItemOut, ItemUpdate
 
@@ -35,13 +36,9 @@ def read_item(db: SessionDep, current_user: CurrentUser, item_id: int) -> ItemOu
     """Retrieve item by ID. The user can only retrieve their own item."""
     item = crud_item.get(db, id=item_id)
     if not item:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Item not found."
-        )
+        raise item_not_found_exception
     if not current_user.is_superuser and item.owner_id != current_user.id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN, detail="Not enough permissions"
-        )
+        raise no_permissions_exception
     return item
 
 
@@ -52,13 +49,9 @@ def update_item(
     """Update an item."""
     item = crud_item.get(db, id=item_id)
     if not item:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Item not found."
-        )
+        raise item_not_found_exception
     if not current_user.is_superuser and item.owner_id != current_user.id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN, detail="Not enough permissions"
-        )
+        raise no_permissions_exception
 
     return crud_item.update(db, db_obj=item, obj_in=item_in)
 
@@ -68,11 +61,7 @@ def delete_item(db: SessionDep, current_user: CurrentUser, item_id: int) -> Item
     """Delete an item."""
     item = crud_item.get(db, id=item_id)
     if not item:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Item not found."
-        )
+        raise item_not_found_exception
     if not current_user.is_superuser and item.owner_id != current_user.id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN, detail="Not enough permissions"
-        )
+        raise no_permissions_exception
     return crud_item.delete(db, id=item_id)

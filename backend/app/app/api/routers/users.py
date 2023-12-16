@@ -1,6 +1,12 @@
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, Query, status
 
-from app.api.deps import CurrentUser, SessionDep, get_current_superuser
+from app.api.deps import (
+    CurrentUser,
+    SessionDep,
+    get_current_active_user,
+    get_current_superuser,
+)
+from app.api.utils import email_registered_exception, user_not_found_exception
 from app.crud.user import crud_user
 from app.models.user import UserCreate, UserOut, UserUpdate
 
@@ -36,22 +42,20 @@ def delete_current_user(db: SessionDep, current_user: CurrentUser):
 def create_user(db: SessionDep, user: UserCreate) -> UserOut:
     """Only superuser can perform this operation."""
     if crud_user.get_by_email(db, email=user.email):
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail="Email already registered"
-        )
+        raise email_registered_exception
     return crud_user.create(db, obj_in=user)
 
 
-@router.get("/", dependencies=[Depends(get_current_superuser)])
+@router.get("/", dependencies=[Depends(get_current_active_user)])
 def read_users(
     db: SessionDep, offset: int = 0, limit: int = Query(default=100, le=100)
 ) -> list[UserOut]:
     return crud_user.list(db, offset=offset, limit=limit)
 
 
-@router.get("/{user_id}", dependencies=[Depends(get_current_superuser)])
+@router.get("/{user_id}", dependencies=[Depends(get_current_active_user)])
 def read_user(db: SessionDep, user_id: int) -> UserOut:
     db_obj = crud_user.get(db, id=user_id)
     if db_obj is None:
-        raise HTTPException(status_code=404, detail="User not found")
+        raise user_not_found_exception
     return db_obj

@@ -1,18 +1,11 @@
 import datetime
 
-from fastapi import HTTPException, status
 from jose import JWTError, jwt
 
 from app.core.config import settings
 from app.models.auth import JWTTokenPayload, TokensResponse
 
 JWT_ALGORITHM = "HS256"
-
-credentials_exception = HTTPException(
-    status_code=status.HTTP_401_UNAUTHORIZED,
-    detail="Could not validate credentials",
-    headers={"WWW-Authenticate": "Bearer"},
-)
 
 
 def generate_tokens_response(subject: str | int) -> TokensResponse:
