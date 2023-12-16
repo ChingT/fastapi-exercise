@@ -17,31 +17,33 @@ def get_db():
         session.close()
 
 
-reusable_oauth2 = OAuth2PasswordBearer(tokenUrl="auth/access-token")
 SessionDep = Annotated[Session, Depends(get_db)]
+reusable_oauth2 = OAuth2PasswordBearer(tokenUrl="auth/access-token")
 TokenDep = Annotated[str, Depends(reusable_oauth2)]
 FormDataDep = Annotated[OAuth2PasswordRequestForm, Depends()]
 
 
 def get_current_user(db: SessionDep, token: TokenDep) -> User:
     if user_id := decode_token(token):
-        user = db.get(User, user_id)
-        if not user:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST, detail="User not found"
-            )
+        if user := db.get(User, user_id):
+            return user
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="User not found"
+        )
     raise credentials_exception
 
 
-CurrentUser = Annotated[User, Depends(get_current_user)]
-
-
-def get_current_active_user(current_user: CurrentUser) -> User:
+def get_current_active_user(
+    current_user: Annotated[User, Depends(get_current_user)]
+) -> User:
     if not current_user.is_active:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail="Inactive user"
         )
     return current_user
+
+
+CurrentUser = Annotated[User, Depends(get_current_active_user)]
 
 
 def get_current_superuser(current_user: CurrentUser) -> User:
