@@ -10,9 +10,8 @@ from app.api.utils import (
     no_permissions_exception,
     user_not_found_exception,
 )
-from app.core.token_utils import decode_token
+from app.core.token_utils import TokenType, decode_token
 from app.db.database import SessionLocal
-from app.models.auth import TokenType
 from app.models.user import User
 
 

@@ -9,17 +9,14 @@ from app.api.utils import (
     inactive_user_exception,
 )
 from app.core.token_utils import (
+    TokenType,
     decode_token,
     generate_password_reset_validation_token,
     generate_registration_validation_token,
     generate_tokens_response,
 )
 from app.crud.user import crud_user
-from app.models.auth import (
-    RefreshTokenRequest,
-    TokensResponse,
-    TokenType,
-)
+from app.models.auth import RefreshTokenRequest, TokensResponse
 from app.models.msg import Msg
 from app.models.user import User, UserCreate, UserRecoverPassword, UserUpdatePassword
 from app.utils import send_new_account_email, send_reset_password_email

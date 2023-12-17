@@ -1,11 +1,19 @@
 import datetime
+from enum import Enum
 
 from jose import JWTError, jwt
 
 from app.core.config import settings
-from app.models.auth import JWTTokenPayload, TokensResponse, TokenType
+from app.models.auth import JWTTokenPayload, TokensResponse
 
 JWT_ALGORITHM = "HS256"
+
+
+class TokenType(Enum):
+    ACCESS = "access"
+    REFRESH = "refresh"
+    REGISTER = "register"
+    PASSWORD_RESET = "password-reset"
 
 
 def generate_tokens_response(subject: str | int) -> TokensResponse:
