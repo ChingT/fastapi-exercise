@@ -41,8 +41,11 @@ class Settings(BaseSettings):
     SECRET_KEY: str
     ENVIRONMENT: Literal["DEV", "PYTEST", "STG", "PRD"] = "DEV"
     SECURITY_BCRYPT_ROUNDS: int = 12
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = 11520  # 8 days
-    REFRESH_TOKEN_EXPIRE_MINUTES: int = 40320  # 28 days
+
+    ACCESS_TOKEN_EXPIRE_HOURS: int = 24 * 7
+    REFRESH_TOKEN_EXPIRE_HOURS: int = 24 * 28
+    EMAIL_VALIDATION_TOKEN_EXPIRE_HOURS: int = 24
+
     BACKEND_CORS_ORIGINS: list[AnyHttpUrl] = []
     ALLOWED_HOSTS: list[str] = []
     SERVER_HOST: AnyHttpUrl
@@ -89,7 +92,6 @@ class Settings(BaseSettings):
     EMAILS_FROM_EMAIL: EmailStr | None = None
     EMAILS_FROM_NAME: str | None = None
 
-    EMAIL_RESET_TOKEN_EXPIRE_HOURS: int = 48
     EMAIL_TEMPLATES_DIR: str = "app/email-templates/build_html"
     EMAILS_ENABLED: bool = False
 

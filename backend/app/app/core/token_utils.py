@@ -10,26 +10,26 @@ JWT_ALGORITHM = "HS256"
 
 def generate_tokens_response(subject: str | int) -> TokensResponse:
     """Generate tokens and return AccessTokenResponse."""
-    access_token = create_token(subject, settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+    access_token = create_token(subject, settings.ACCESS_TOKEN_EXPIRE_HOURS)
     refresh_token = create_token(
-        subject, settings.REFRESH_TOKEN_EXPIRE_MINUTES, refresh=True
+        subject, settings.REFRESH_TOKEN_EXPIRE_HOURS, refresh=True
     )
     return TokensResponse(
         token_type="Bearer", access_token=access_token, refresh_token=refresh_token
     )
 
 
-def create_token(sub: str | int, exp_mins: float, refresh: bool = False) -> str:
+def create_token(sub: str | int, exp_hours: float, refresh: bool = False) -> str:
     """Create jwt access or refresh token for user.
 
     Args:
     ----
         sub: anything unique to user, id or email etc. Need to be converted to a string.
-        exp_mins: expire time in minutes
+        exp_hours: expire time in hours
         refresh: if True, this is refresh token
     """
     now = datetime.datetime.now(tz=datetime.UTC)
-    exp = now + datetime.timedelta(minutes=exp_mins)
+    exp = now + datetime.timedelta(hours=exp_hours)
 
     claims = {
         **JWTTokenPayload(sub=str(sub), exp=exp, nbf=now, refresh=refresh).model_dump()
