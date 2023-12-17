@@ -1,4 +1,5 @@
 from datetime import datetime
+from enum import Enum
 
 from pydantic import ConfigDict
 from sqlmodel import SQLModel
@@ -20,4 +21,11 @@ class JWTTokenPayload(SQLModel):
     sub: str | int
     exp: datetime
     nbf: datetime
-    refresh: bool
+    type: str
+
+
+class TokenType(Enum):
+    ACCESS = "access"
+    REFRESH = "refresh"
+    REGISTER = "register"
+    PASSWORD_RESET = "password-reset"

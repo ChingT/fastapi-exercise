@@ -12,6 +12,7 @@ from app.api.utils import (
 )
 from app.core.token_utils import decode_token
 from app.db.database import SessionLocal
+from app.models.auth import TokenType
 from app.models.user import User
 
 
@@ -30,7 +31,7 @@ FormDataDep = Annotated[OAuth2PasswordRequestForm, Depends()]
 
 
 def get_current_user(db: SessionDep, token: TokenDep) -> User:
-    if user_id := decode_token(token):
+    if user_id := decode_token(token, TokenType.ACCESS):
         if user := db.get(User, user_id):
             return user
         raise user_not_found_exception

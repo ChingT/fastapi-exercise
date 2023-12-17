@@ -6,7 +6,6 @@ import emails
 from emails.template import JinjaTemplate
 
 from app.core.config import settings
-from app.core.token_utils import create_token, decode_token
 
 
 def send_email(
@@ -86,13 +85,3 @@ def send_reset_password_email(email_to: str, token: str) -> None:
             "link": link,
         },
     )
-
-
-def generate_validation_token(email: str) -> str:
-    """Create password reset token with email as subject."""
-    return create_token(email, settings.EMAIL_VALIDATION_TOKEN_EXPIRE_HOURS)
-
-
-def verify_validation_token(token: str) -> str | None:
-    """Verify password reset token and return the subject (email)."""
-    return decode_token(token)
