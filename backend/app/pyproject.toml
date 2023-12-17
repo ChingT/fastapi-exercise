@@ -1,8 +1,8 @@
 [tool.poetry]
 authors = ["admin <admin@example.com>"]
-description = "FastAPI project generated using minimal-fastapi-postgres-template."
-name = "cookbook-api"
-version = "0.1.0-alpha"
+description = "FastAPI example project"
+name = "fastapi-example"
+version = "0.0.1"
 
 [tool.poetry.dependencies]
 python = "^3.12"
@@ -48,11 +48,6 @@ markers = ["pytest.mark.asyncio"]
 minversion = "6.0"
 testpaths = ["app/tests"]
 
-# [tool.ruff]
-# target-version = "py312"
-# # pycodestyle, pyflakes, isort, pylint, pyupgrade
-# select = ["E", "W", "F", "I", "PL", "UP"]
-# ignore = ["E501"]
 
 [tool.ruff]
 target-version = "py312"
