@@ -1,3 +1,5 @@
+from uuid import UUID
+
 from fastapi import APIRouter, Query, status
 
 from app.api.deps import CurrentUser, SessionDep
@@ -32,7 +34,7 @@ def read_items(
 
 
 @router.get("/{item_id}")
-def read_item(db: SessionDep, current_user: CurrentUser, item_id: int) -> ItemOut:
+def read_item(db: SessionDep, current_user: CurrentUser, item_id: UUID) -> ItemOut:
     """Retrieve item by ID. The user can only retrieve their own item."""
     item = crud_item.get(db, id=item_id)
     if not item:
@@ -44,7 +46,11 @@ def read_item(db: SessionDep, current_user: CurrentUser, item_id: int) -> ItemOu
 
 @router.put("/{item_id}")
 def update_item(
-    *, db: SessionDep, current_user: CurrentUser, item_id: int, item_in: ItemUpdate
+    *,
+    db: SessionDep,
+    current_user: CurrentUser,
+    item_id: UUID,
+    item_in: ItemUpdate,
 ) -> ItemOut:
     """Update an item."""
     item = crud_item.get(db, id=item_id)
@@ -57,7 +63,7 @@ def update_item(
 
 
 @router.delete("/{item_id}")
-def delete_item(db: SessionDep, current_user: CurrentUser, item_id: int) -> ItemOut:
+def delete_item(db: SessionDep, current_user: CurrentUser, item_id: UUID) -> ItemOut:
     """Delete an item."""
     item = crud_item.get(db, id=item_id)
     if not item:

@@ -1,6 +1,10 @@
+from datetime import datetime
+from uuid import UUID
+
 from sqlmodel import Field, Relationship, SQLModel
 
-from .user import User
+from .base_uuid_model import BaseUUIDModel
+from .user import User, UserOut
 
 
 class ItemBase(SQLModel):
@@ -16,13 +20,14 @@ class ItemUpdate(ItemBase):
     title: str | None = None
 
 
-class Item(ItemBase, table=True):
-    id: int | None = Field(default=None, primary_key=True)
+class Item(BaseUUIDModel, ItemBase, table=True):
     title: str
-    owner_id: int | None = Field(default=None, foreign_key="user.id")
+    owner_id: UUID | None = Field(default=None, foreign_key="user.id")
     owner: User | None = Relationship(back_populates="items")
 
 
 class ItemOut(ItemBase):
-    id: int
-    owner_id: int
+    id: UUID
+    updated_at: datetime
+    created_at: datetime
+    owner: UserOut

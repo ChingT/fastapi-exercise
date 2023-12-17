@@ -1,7 +1,10 @@
 from typing import TYPE_CHECKING
+from uuid import UUID
 
 from pydantic import EmailStr, computed_field
 from sqlmodel import Column, Field, Relationship, SQLModel, String
+
+from .base_uuid_model import BaseUUIDModel
 
 if TYPE_CHECKING:
     from .item import Item
@@ -36,8 +39,7 @@ class UserRecoverPassword(SQLModel):
     email: EmailStr
 
 
-class User(UserBase, table=True):
-    id: int | None = Field(default=None, primary_key=True)
+class User(BaseUUIDModel, UserBase, table=True):
     hashed_password: str
     items: list["Item"] = Relationship(
         back_populates="owner", sa_relationship_kwargs={"cascade": "all, delete"}
@@ -45,7 +47,7 @@ class User(UserBase, table=True):
 
 
 class UserOut(UserBase):
-    id: int
+    id: UUID
 
     @computed_field
     def full_name(self) -> str:

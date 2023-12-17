@@ -1,3 +1,5 @@
+from uuid import UUID
+
 from fastapi import APIRouter, Depends, Query, status
 
 from app.api.deps import (
@@ -54,7 +56,7 @@ def read_users(
 
 
 @router.get("/{user_id}", dependencies=[Depends(get_current_active_user)])
-def read_user(db: SessionDep, user_id: int) -> UserOut:
+def read_user(db: SessionDep, user_id: UUID) -> UserOut:
     db_obj = crud_user.get(db, id=user_id)
     if db_obj is None:
         raise user_not_found_exception

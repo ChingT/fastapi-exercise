@@ -1,4 +1,5 @@
 from typing import Any, Generic, TypeVar
+from uuid import UUID
 
 from fastapi import Query
 from fastapi.encoders import jsonable_encoder
@@ -26,7 +27,7 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
     ) -> list[ModelType] | None:
         return db.query(self.model).offset(offset).limit(limit).all()
 
-    def get(self, db: Session, *, id: int) -> ModelType | None:
+    def get(self, db: Session, *, id: UUID) -> ModelType | None:
         return db.query(self.model).get(id)
 
     def create(self, db: Session, *, obj_in: CreateSchemaType) -> ModelType:
@@ -57,7 +58,7 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         db.refresh(db_obj)
         return db_obj
 
-    def delete(self, db: Session, *, id: int) -> ModelType:
+    def delete(self, db: Session, *, id: UUID) -> ModelType:
         obj = db.query(self.model).get(id)
         db.delete(obj)
         db.commit()

@@ -1,3 +1,5 @@
+from uuid import UUID
+
 from fastapi import Query
 from fastapi.encoders import jsonable_encoder
 from sqlalchemy.orm import Session
@@ -19,7 +21,7 @@ class CRUDItem(CRUDBase[Item, ItemCreate, ItemUpdate]):
         self,
         db: Session,
         *,
-        user_id: int,
+        user_id: UUID,
         offset: int = 0,
         limit: int = Query(default=100, le=100),
     ) -> list[Item]:
