@@ -24,6 +24,7 @@ def main() -> None:
         email=settings.FIRST_SUPERUSER_EMAIL, password=settings.FIRST_SUPERUSER_PASSWORD
     )
     user = crud_user.create(db=db, obj_in=new_user, is_superuser=True)
+    crud_user.activate(db, user)
     logging.info("Superuser %s created", user)
 
 

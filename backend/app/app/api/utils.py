@@ -18,6 +18,9 @@ user_not_found_exception = HTTPException(
 inactive_user_exception = HTTPException(
     status.HTTP_400_BAD_REQUEST, detail="Inactive user"
 )
+active_user_exception = HTTPException(
+    status.HTTP_400_BAD_REQUEST, detail="User account already activated"
+)
 email_registered_exception = HTTPException(
     status.HTTP_400_BAD_REQUEST, detail="Email already registered"
 )

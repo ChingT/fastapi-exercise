@@ -9,7 +9,7 @@ if TYPE_CHECKING:
 
 class UserBase(SQLModel):
     email: EmailStr = Field(sa_column=Column(String, index=True, unique=True))
-    is_active: bool = True
+    is_active: bool = False
     is_superuser: bool = False
     first_name: str | None = None
     last_name: str | None = None

@@ -212,7 +212,29 @@
                               color: #555555;
                             "
                           >
-                            You have a new account with {{ email }}
+                            You have a new account with {{ email }}.
+                          </div>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td
+                          align="left"
+                          style="
+                            font-size: 0px;
+                            padding: 10px 25px;
+                            word-break: break-word;
+                          "
+                        >
+                          <div
+                            style="
+                              font-family: Ubuntu, Helvetica, Arial, sans-serif;
+                              font-size: 16px;
+                              line-height: 1;
+                              text-align: left;
+                              color: #555555;
+                            "
+                          >
+                            Activate your account by clicking the button below:
                           </div>
                         </td>
                       </tr>
@@ -267,11 +289,33 @@
                                   "
                                   target="_blank"
                                 >
-                                  Go to Dashboard
+                                  Activate Account
                                 </a>
                               </td>
                             </tr>
                           </table>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td
+                          align="left"
+                          style="
+                            font-size: 0px;
+                            padding: 10px 25px;
+                            word-break: break-word;
+                          "
+                        >
+                          <div
+                            style="
+                              font-family: Ubuntu, Helvetica, Arial, sans-serif;
+                              font-size: 16px;
+                              line-height: 1;
+                              text-align: left;
+                              color: #555555;
+                            "
+                          >
+                            Or open the link <a href="{{ link }}">{{ link }}</a>
+                          </div>
                         </td>
                       </tr>
                       <tr>
@@ -313,6 +357,51 @@
                               </tr>
                             </table><!
                           [endif]-->
+                        </td>
+                      </tr>
+                      <tr>
+                        <td
+                          align="left"
+                          style="
+                            font-size: 0px;
+                            padding: 10px 25px;
+                            word-break: break-word;
+                          "
+                        >
+                          <div
+                            style="
+                              font-family: Ubuntu, Helvetica, Arial, sans-serif;
+                              font-size: 14px;
+                              line-height: 1;
+                              text-align: left;
+                              color: #555555;
+                            "
+                          >
+                            The link will expire in {{ valid_hours }} hours.
+                          </div>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td
+                          align="left"
+                          style="
+                            font-size: 0px;
+                            padding: 10px 25px;
+                            word-break: break-word;
+                          "
+                        >
+                          <div
+                            style="
+                              font-family: Ubuntu, Helvetica, Arial, sans-serif;
+                              font-size: 14px;
+                              line-height: 1;
+                              text-align: left;
+                              color: #555555;
+                            "
+                          >
+                            If you didn't register a new account you can
+                            disregard this email.
+                          </div>
                         </td>
                       </tr>
                     </tbody>

@@ -41,5 +41,11 @@ class CRUDUser(CRUDBase[User, UserCreate, UserUpdate]):
             return None
         return user
 
+    def activate(self, db: Session, db_obj: User) -> bool:
+        db_obj.is_active = True
+        db.add(db_obj)
+        db.commit()
+        return True
+
 
 crud_user = CRUDUser(User)

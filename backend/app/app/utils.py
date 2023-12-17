@@ -47,35 +47,14 @@ def send_test_email(email_to: str) -> None:
     )
 
 
-def send_reset_password_email(email_to: str, token: str) -> None:
-    project_name = settings.PROJECT_NAME
-    subject = f"{project_name} - Password recovery"
-    path = Path(settings.EMAIL_TEMPLATES_DIR) / "reset_password.html"
-    with path.open() as f:
-        template_str = f.read()
-    server_host = settings.SERVER_HOST
-    link = f"{server_host}reset-password?token={token}"
-    send_email(
-        email_to=email_to,
-        subject_template=subject,
-        html_template=template_str,
-        environment={
-            "project_name": settings.PROJECT_NAME,
-            "email": email_to,
-            "valid_hours": settings.EMAIL_RESET_TOKEN_EXPIRE_HOURS,
-            "link": link,
-        },
-    )
-
-
-def send_new_account_email(email_to: str) -> None:
+def send_new_account_email(email_to: str, token: str) -> None:
     project_name = settings.PROJECT_NAME
     subject = f"{project_name} - New account"
 
     path = Path(settings.EMAIL_TEMPLATES_DIR) / "new_account.html"
     with path.open() as f:
         template_str = f.read()
-    link = settings.SERVER_HOST
+    link = f"{settings.SERVER_HOST}register?token={token}"
     send_email(
         email_to=email_to,
         subject_template=subject,
@@ -83,16 +62,37 @@ def send_new_account_email(email_to: str) -> None:
         environment={
             "project_name": settings.PROJECT_NAME,
             "email": email_to,
+            "valid_hours": settings.EMAIL_VALIDATION_TOKEN_EXPIRE_HOURS,
             "link": link,
         },
     )
 
 
-def generate_password_reset_token(email: str) -> str:
+def send_reset_password_email(email_to: str, token: str) -> None:
+    project_name = settings.PROJECT_NAME
+    subject = f"{project_name} - Password recovery"
+    path = Path(settings.EMAIL_TEMPLATES_DIR) / "reset_password.html"
+    with path.open() as f:
+        template_str = f.read()
+    link = f"{settings.SERVER_HOST}reset-password?token={token}"
+    send_email(
+        email_to=email_to,
+        subject_template=subject,
+        html_template=template_str,
+        environment={
+            "project_name": settings.PROJECT_NAME,
+            "email": email_to,
+            "valid_hours": settings.EMAIL_VALIDATION_TOKEN_EXPIRE_HOURS,
+            "link": link,
+        },
+    )
+
+
+def generate_validation_token(email: str) -> str:
     """Create password reset token with email as subject."""
-    return create_token(email, settings.EMAIL_RESET_TOKEN_EXPIRE_HOURS)
+    return create_token(email, settings.EMAIL_VALIDATION_TOKEN_EXPIRE_HOURS)
 
 
-def verify_password_reset_token(token: str) -> str | None:
+def verify_validation_token(token: str) -> str | None:
     """Verify password reset token and return the subject (email)."""
     return decode_token(token)

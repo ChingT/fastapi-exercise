@@ -3,6 +3,7 @@ from fastapi import APIRouter, Body, HTTPException, status
 from app.api.deps import FormDataDep, SessionDep
 from app.api.routers.users import user_not_found_exception
 from app.api.utils import (
+    active_user_exception,
     credentials_exception,
     email_registered_exception,
     inactive_user_exception,
@@ -11,18 +12,12 @@ from app.core.token_utils import decode_token, generate_tokens_response
 from app.crud.user import crud_user
 from app.models.auth import RefreshTokenRequest, TokensResponse
 from app.models.msg import Msg
-from app.models.user import (
-    User,
-    UserCreate,
-    UserOut,
-    UserRecoverPassword,
-    UserUpdatePassword,
-)
+from app.models.user import User, UserCreate, UserRecoverPassword, UserUpdatePassword
 from app.utils import (
-    generate_password_reset_token,
+    generate_validation_token,
     send_new_account_email,
     send_reset_password_email,
-    verify_password_reset_token,
+    verify_validation_token,
 )
 
 router = APIRouter()
@@ -30,7 +25,7 @@ router = APIRouter()
 
 @router.post("/access-token", status_code=status.HTTP_201_CREATED)
 def login_access_token(db: SessionDep, form_data: FormDataDep) -> TokensResponse:
-    """Get an access token for future requests using username and password."""
+    """Get an access token for future requests using email and password."""
     user = crud_user.authenticate(
         db, email=form_data.username, password=form_data.password
     )
@@ -53,33 +48,50 @@ def refresh_token(db: SessionDep, token: RefreshTokenRequest) -> TokensResponse:
 
 
 @router.post("/registration")
-def register_user(db: SessionDep, user_in: UserCreate) -> UserOut:
+def register_user(db: SessionDep, data: UserCreate) -> Msg:
     """Register new user."""
-    if crud_user.get_by_email(db, email=user_in.email):
+    email = data.email
+    if crud_user.get_by_email(db, email=email):
         raise email_registered_exception
-    user = crud_user.create(db, obj_in=user_in)
-    send_new_account_email(email_to=user_in.email)
-    return user
+    crud_user.create(db, obj_in=data)
+    token = generate_validation_token(email=email)
+    send_new_account_email(email, token)
+    return {"msg": "New account email sent"}
 
 
-@router.post("/password-recovery")
-def recover_password(db: SessionDep, data: UserRecoverPassword) -> Msg:
-    """Password Recovery."""
+@router.post("/registration/validation")
+def validate_register_user(db: SessionDep, token: str = Body(..., embed=True)) -> Msg:
+    """Validate registration token and activate the account."""
+    email = verify_validation_token(token)
+    print("email", email)
+    user = crud_user.get_by_email(db, email=email)
+    if not user:
+        raise user_not_found_exception
+    if user.is_active:
+        raise active_user_exception
+    crud_user.activate(db, user)
+    return {"msg": "Account activated successfully"}
+
+
+@router.post("/password-reset")
+def reset_password(db: SessionDep, data: UserRecoverPassword) -> Msg:
+    """Send password reset email."""
     email = data.email
     user = crud_user.get_by_email(db, email=email)
     if not user:
         raise user_not_found_exception
-    password_reset_token = generate_password_reset_token(email=email)
-    send_reset_password_email(email_to=email, token=password_reset_token)
+
+    token = generate_validation_token(email=email)
+    send_reset_password_email(email, token)
     return {"msg": "Password recovery email sent"}
 
 
-@router.post("/password-reset")
-def reset_password(
+@router.post("/password-reset/validation")
+def validate_reset_password(
     db: SessionDep, token: str = Body(...), new_password: str = Body(...)
 ) -> Msg:
-    """Reset password."""
-    email = verify_password_reset_token(token)
+    """Validate password reset token and reset the password."""
+    email = verify_validation_token(token)
     if not email:
         raise credentials_exception
     user = crud_user.get_by_email(db, email=email)
