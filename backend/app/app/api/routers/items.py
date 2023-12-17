@@ -46,11 +46,7 @@ def read_item(db: SessionDep, current_user: CurrentUser, item_id: UUID) -> ItemO
 
 @router.put("/{item_id}")
 def update_item(
-    *,
-    db: SessionDep,
-    current_user: CurrentUser,
-    item_id: UUID,
-    item_in: ItemUpdate,
+    db: SessionDep, current_user: CurrentUser, item_id: UUID, item_in: ItemUpdate
 ) -> ItemOut:
     """Update an item."""
     item = crud_item.get(db, id=item_id)

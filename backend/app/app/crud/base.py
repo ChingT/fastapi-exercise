@@ -23,14 +23,14 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         self.model = model
 
     def list(
-        self, db: Session, *, offset: int = 0, limit: int = Query(default=100, le=100)
+        self, db: Session, offset: int = 0, limit: int = Query(default=100, le=100)
     ) -> list[ModelType] | None:
         return db.query(self.model).offset(offset).limit(limit).all()
 
-    def get(self, db: Session, *, id: UUID) -> ModelType | None:
+    def get(self, db: Session, id: UUID) -> ModelType | None:
         return db.query(self.model).get(id)
 
-    def create(self, db: Session, *, obj_in: CreateSchemaType) -> ModelType:
+    def create(self, db: Session, obj_in: CreateSchemaType) -> ModelType:
         obj_in_data = jsonable_encoder(obj_in)
         db_obj = self.model(**obj_in_data)
         db.add(db_obj)
@@ -39,11 +39,7 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         return db_obj
 
     def update(
-        self,
-        db: Session,
-        *,
-        db_obj: ModelType,
-        obj_in: UpdateSchemaType | dict[str, Any],
+        self, db: Session, db_obj: ModelType, obj_in: UpdateSchemaType | dict[str, Any]
     ) -> ModelType:
         obj_data = jsonable_encoder(db_obj)
         if isinstance(obj_in, dict):
@@ -58,7 +54,7 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         db.refresh(db_obj)
         return db_obj
 
-    def delete(self, db: Session, *, id: UUID) -> ModelType:
+    def delete(self, db: Session, id: UUID) -> ModelType:
         obj = db.query(self.model).get(id)
         db.delete(obj)
         db.commit()
