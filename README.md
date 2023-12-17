@@ -19,12 +19,15 @@ This project draws inspiration from the following resources:
 
 ## To-Do List
 
-- [x] Implement JWT authentication
-- [ ] Integrate Celery for asynchronous task processing
-- [ ] Implement testing
-- [ ] Establish a sample one-to-one relationship
-- [x] Implement a sample one-to-many relationship
-- [ ] Create a sample many-to-many relationship
-- [ ] Implement Pagination
-- [ ] Enable functionality to upload images and store them using Minio
-- [ ] Incorporate a sample React frontend
+- [x] Implement JWT authentication.
+- [x] Create registration and password-reset email templates.
+- [x] Implement validation for registration and password-reset via token.
+- [x] Introduce BaseUUIDModel.
+- [ ] Integrate Celery for asynchronous task processing.
+- [ ] Implement testing.
+- [ ] Establish a sample one-to-one relationship.
+- [x] Implement a sample one-to-many relationship.
+- [ ] Create a sample many-to-many relationship.
+- [ ] Implement Pagination.
+- [ ] Enable functionality to upload images and store them using Minio.
+- [ ] Incorporate a sample React frontend.
