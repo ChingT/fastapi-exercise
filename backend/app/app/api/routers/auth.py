@@ -1,3 +1,5 @@
+import logging
+
 from fastapi import APIRouter, Body, HTTPException, status
 
 from app.api.deps import FormDataDep, SessionDep
@@ -22,6 +24,8 @@ from app.models.user import User, UserCreate, UserRecoverPassword, UserUpdatePas
 from app.utils import send_new_account_email, send_reset_password_email
 
 router = APIRouter()
+
+logger = logging.getLogger(__name__)
 
 
 @router.post("/access-token", status_code=status.HTTP_201_CREATED)
@@ -57,7 +61,7 @@ def register_user(db: SessionDep, data: UserCreate) -> Msg:
 
     crud_user.create(db, obj_in=data)
     token = generate_registration_validation_token(email=email)
-    send_new_account_email(email, token)
+    send_new_account_email.delay(email, token)
     return {"msg": "New account email sent"}
 
 
@@ -86,7 +90,7 @@ def reset_password(db: SessionDep, data: UserRecoverPassword) -> Msg:
         raise inactive_user_exception
 
     token = generate_password_reset_validation_token(email=email)
-    send_reset_password_email(email, token)
+    send_reset_password_email.delay(email, token)
     return {"msg": "Password recovery email sent"}
 
 

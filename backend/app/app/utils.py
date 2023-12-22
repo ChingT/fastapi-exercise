@@ -1,11 +1,14 @@
-import logging
 from pathlib import Path
 from typing import Any
 
 import emails
+from celery import shared_task
+from celery.utils.log import get_task_logger
 from emails.template import JinjaTemplate
 
 from app.core.config import settings
+
+logger = get_task_logger("tasks")
 
 
 def send_email(
@@ -29,9 +32,10 @@ def send_email(
     if settings.SMTP_PASSWORD:
         smtp_options["password"] = settings.SMTP_PASSWORD
     response = message.send(to=email_to, render=environment, smtp=smtp_options)
-    logging.info("send email result: %s", response)
+    logger.info("Send %s mail to %s - result: %s", subject_template, email_to, response)
 
 
+@shared_task
 def send_test_email(email_to: str) -> None:
     project_name = settings.PROJECT_NAME
     subject = f"{project_name} - Test email"
@@ -46,6 +50,7 @@ def send_test_email(email_to: str) -> None:
     )
 
 
+@shared_task
 def send_new_account_email(email_to: str, token: str) -> None:
     project_name = settings.PROJECT_NAME
     subject = f"{project_name} - New account"
@@ -67,6 +72,7 @@ def send_new_account_email(email_to: str, token: str) -> None:
     )
 
 
+@shared_task
 def send_reset_password_email(email_to: str, token: str) -> None:
     project_name = settings.PROJECT_NAME
     subject = f"{project_name} - Password recovery"
