@@ -15,7 +15,7 @@ from app.db.database import SessionLocal
 from app.models.user import User
 
 
-def get_db():
+def get_session():
     session = SessionLocal()
     try:
         yield session
@@ -23,7 +23,7 @@ def get_db():
         session.close()
 
 
-SessionDep = Annotated[Session, Depends(get_db)]
+SessionDep = Annotated[Session, Depends(get_session)]
 reusable_oauth2 = OAuth2PasswordBearer(tokenUrl="auth/access-token")
 TokenDep = Annotated[str, Depends(reusable_oauth2)]
 FormDataDep = Annotated[OAuth2PasswordRequestForm, Depends()]

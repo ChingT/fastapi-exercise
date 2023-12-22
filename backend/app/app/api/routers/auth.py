@@ -29,7 +29,7 @@ logger = logging.getLogger(__name__)
 
 
 @router.post("/access-token", status_code=status.HTTP_201_CREATED)
-def login_access_token(db: SessionDep, form_data: FormDataDep) -> TokensResponse:
+async def login_access_token(db: SessionDep, form_data: FormDataDep) -> TokensResponse:
     """Get an access token for future requests using email and password."""
     user = crud_user.authenticate(
         db, email=form_data.username, password=form_data.password
@@ -44,7 +44,7 @@ def login_access_token(db: SessionDep, form_data: FormDataDep) -> TokensResponse
 
 
 @router.post("/refresh-token", status_code=status.HTTP_201_CREATED)
-def refresh_token(db: SessionDep, token: RefreshTokenRequest) -> TokensResponse:
+async def refresh_token(db: SessionDep, token: RefreshTokenRequest) -> TokensResponse:
     """Get an access token using a refresh token."""
     user_id = decode_token(token.refresh_token, TokenType.REFRESH)
     if db.get(User, user_id):
@@ -53,7 +53,7 @@ def refresh_token(db: SessionDep, token: RefreshTokenRequest) -> TokensResponse:
 
 
 @router.post("/registration")
-def register_user(db: SessionDep, data: UserCreate) -> Msg:
+async def register_user(db: SessionDep, data: UserCreate) -> Msg:
     """Register new user."""
     email = data.email
     if crud_user.get_by_email(db, email=email):
@@ -66,7 +66,9 @@ def register_user(db: SessionDep, data: UserCreate) -> Msg:
 
 
 @router.post("/registration/validation")
-def validate_register_user(db: SessionDep, token: str = Body(..., embed=True)) -> Msg:
+async def validate_register_user(
+    db: SessionDep, token: str = Body(..., embed=True)
+) -> Msg:
     """Validate registration token and activate the account."""
     email = decode_token(token, TokenType.REGISTER)
     user = crud_user.get_by_email(db, email=email)
@@ -80,7 +82,7 @@ def validate_register_user(db: SessionDep, token: str = Body(..., embed=True)) -
 
 
 @router.post("/password-reset")
-def reset_password(db: SessionDep, data: UserRecoverPassword) -> Msg:
+async def reset_password(db: SessionDep, data: UserRecoverPassword) -> Msg:
     """Send password reset email."""
     email = data.email
     user = crud_user.get_by_email(db, email=email)
@@ -95,7 +97,7 @@ def reset_password(db: SessionDep, data: UserRecoverPassword) -> Msg:
 
 
 @router.post("/password-reset/validation")
-def validate_reset_password(
+async def validate_reset_password(
     db: SessionDep, token: str = Body(...), new_password: str = Body(...)
 ) -> Msg:
     """Validate password reset token and reset the password."""
