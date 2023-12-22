@@ -27,6 +27,7 @@ from pathlib import Path
 from typing import Literal
 
 from pydantic import AnyHttpUrl, EmailStr, PostgresDsn, computed_field, field_validator
+from pydantic_core import Url
 from pydantic_core.core_schema import FieldValidationInfo
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -49,6 +50,9 @@ class Settings(BaseSettings):
     BACKEND_CORS_ORIGINS: list[AnyHttpUrl] = []
     ALLOWED_HOSTS: list[str] = []
     SERVER_HOST: AnyHttpUrl
+
+    CELERY_BROKER_URL: Url
+    CELERY_RESULT_BACKEND: Url
 
     # PROJECT NAME, VERSION AND DESCRIPTION
     PROJECT_NAME: str = PYPROJECT_CONTENT["name"]
