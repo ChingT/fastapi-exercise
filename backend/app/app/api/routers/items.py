@@ -3,7 +3,6 @@ from uuid import UUID
 from fastapi import APIRouter, Query, status
 
 from app.api.deps import CurrentUser, SessionDep
-from app.api.utils import item_not_found_exception, no_permissions_exception
 from app.crud.item import crud_item
 from app.models.item import ItemCreate, ItemOut, ItemUpdate
 
@@ -11,59 +10,45 @@ router = APIRouter()
 
 
 @router.post("/", status_code=status.HTTP_201_CREATED)
-def create_item_for_user(
-    db: SessionDep, item: ItemCreate, current_user: CurrentUser
+async def create_item_for_user(
+    session: SessionDep, item: ItemCreate, current_user: CurrentUser
 ) -> ItemOut:
-    obj_in = {**item.model_dump(), "owner_id": current_user.id}
-    return crud_item.create_with_owner(db, obj_in=obj_in)
+    return await crud_item.create_with_owner(session, item, current_user.id)
 
 
 @router.get("/")
-def read_items(
-    db: SessionDep,
+async def read_items(
+    session: SessionDep,
     current_user: CurrentUser,
     offset: int = 0,
     limit: int = Query(default=100, le=100),
 ) -> list[ItemOut]:
     """Retrieve items. The user can only retrieve their own items."""
     if current_user.is_superuser:
-        return crud_item.list(db, offset=offset, limit=limit)
-    return crud_item.list_by_owner(
-        db, user_id=current_user.id, offset=offset, limit=limit
-    )
+        return await crud_item.list(session, offset, limit)
+    return await crud_item.list_by_owner(session, current_user.id, offset, limit)
 
 
 @router.get("/{item_id}")
-def read_item(db: SessionDep, current_user: CurrentUser, item_id: UUID) -> ItemOut:
+async def read_item(
+    session: SessionDep, current_user: CurrentUser, item_id: UUID
+) -> ItemOut:
     """Retrieve item by ID. The user can only retrieve their own item."""
-    item = crud_item.get(db, id=item_id)
-    if not item:
-        raise item_not_found_exception
-    if not current_user.is_superuser and item.owner_id != current_user.id:
-        raise no_permissions_exception
-    return item
+    return await crud_item.get_by_owner(session, item_id, current_user)
 
 
-@router.put("/{item_id}")
-def update_item(
-    db: SessionDep, current_user: CurrentUser, item_id: UUID, item_in: ItemUpdate
+@router.patch("/{item_id}")
+async def update_item(
+    session: SessionDep, current_user: CurrentUser, item_id: UUID, item_in: ItemUpdate
 ) -> ItemOut:
     """Update an item."""
-    item = crud_item.get(db, id=item_id)
-    if not item:
-        raise item_not_found_exception
-    if not current_user.is_superuser and item.owner_id != current_user.id:
-        raise no_permissions_exception
-
-    return crud_item.update(db, db_obj=item, obj_in=item_in)
+    item = await crud_item.get_by_owner(session, item_id, current_user)
+    return await crud_item.update(session, item, item_in)
 
 
-@router.delete("/{item_id}")
-def delete_item(db: SessionDep, current_user: CurrentUser, item_id: UUID) -> ItemOut:
+@router.delete("/{item_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_item(session: SessionDep, current_user: CurrentUser, item_id: UUID):
     """Delete an item."""
-    item = crud_item.get(db, id=item_id)
-    if not item:
-        raise item_not_found_exception
-    if not current_user.is_superuser and item.owner_id != current_user.id:
-        raise no_permissions_exception
-    return crud_item.delete(db, id=item_id)
+    item = await crud_item.get_by_owner(session, item_id, current_user)
+    await crud_item.delete(session, item)
+    return {"msg": "Item deleted"}

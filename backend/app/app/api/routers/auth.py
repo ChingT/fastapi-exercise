@@ -29,11 +29,11 @@ logger = logging.getLogger(__name__)
 
 
 @router.post("/access-token", status_code=status.HTTP_201_CREATED)
-async def login_access_token(db: SessionDep, form_data: FormDataDep) -> TokensResponse:
+async def login_access_token(
+    session: SessionDep, form_data: FormDataDep
+) -> TokensResponse:
     """Get an access token for future requests using email and password."""
-    user = crud_user.authenticate(
-        db, email=form_data.username, password=form_data.password
-    )
+    user = await crud_user.authenticate(session, form_data.username, form_data.password)
     if not user:
         raise HTTPException(
             status.HTTP_400_BAD_REQUEST, detail="Incorrect email or password"
@@ -44,71 +44,73 @@ async def login_access_token(db: SessionDep, form_data: FormDataDep) -> TokensRe
 
 
 @router.post("/refresh-token", status_code=status.HTTP_201_CREATED)
-async def refresh_token(db: SessionDep, token: RefreshTokenRequest) -> TokensResponse:
+async def refresh_token(
+    session: SessionDep, token: RefreshTokenRequest
+) -> TokensResponse:
     """Get an access token using a refresh token."""
     user_id = decode_token(token.refresh_token, TokenType.REFRESH)
-    if db.get(User, user_id):
+    if session.get(User, user_id):
         return generate_tokens_response(user_id)
     raise credentials_exception
 
 
 @router.post("/registration")
-async def register_user(db: SessionDep, data: UserCreate) -> Msg:
+async def register_user(session: SessionDep, data: UserCreate) -> Msg:
     """Register new user."""
     email = data.email
-    if crud_user.get_by_email(db, email=email):
+    if await crud_user.get_by_email(session, email):
         raise email_registered_exception
 
-    crud_user.create(db, obj_in=data)
-    token = generate_registration_validation_token(email=email)
+    await crud_user.create(session, data)
+    token = generate_registration_validation_token(email)
     send_new_account_email.delay(email, token)
     return {"msg": "New account email sent"}
 
 
 @router.post("/registration/validation")
 async def validate_register_user(
-    db: SessionDep, token: str = Body(..., embed=True)
+    session: SessionDep, token: str = Body(..., embed=True)
 ) -> Msg:
     """Validate registration token and activate the account."""
     email = decode_token(token, TokenType.REGISTER)
-    user = crud_user.get_by_email(db, email=email)
+    user = await crud_user.get_by_email(session, email)
     if not user:
         raise user_not_found_exception
     if user.is_active:
         raise active_user_exception
 
-    crud_user.activate(db, user)
+    await crud_user.activate(session, user)
     return {"msg": "Account activated successfully"}
 
 
 @router.post("/password-reset")
-async def reset_password(db: SessionDep, data: UserRecoverPassword) -> Msg:
+async def reset_password(session: SessionDep, data: UserRecoverPassword) -> Msg:
     """Send password reset email."""
     email = data.email
-    user = crud_user.get_by_email(db, email=email)
+    user = await crud_user.get_by_email(session, email)
     if not user:
         raise user_not_found_exception
     if not user.is_active:
         raise inactive_user_exception
 
-    token = generate_password_reset_validation_token(email=email)
+    token = generate_password_reset_validation_token(email)
     send_reset_password_email.delay(email, token)
     return {"msg": "Password recovery email sent"}
 
 
 @router.post("/password-reset/validation")
 async def validate_reset_password(
-    db: SessionDep, token: str = Body(...), new_password: str = Body(...)
+    session: SessionDep, token: str = Body(...), new_password: str = Body(...)
 ) -> Msg:
     """Validate password reset token and reset the password."""
     email = decode_token(token, TokenType.PASSWORD_RESET)
     if not email:
         raise credentials_exception
-    user = crud_user.get_by_email(db, email=email)
+    user = await crud_user.get_by_email(session, email)
     if not user:
         raise user_not_found_exception
     if not user.is_active:
         raise inactive_user_exception
 
-    crud_user.update(db, db_obj=user, obj_in=UserUpdatePassword(password=new_password))
+    await crud_user.update(session, user, UserUpdatePassword(password=new_password))
     return {"msg": "Password updated successfully"}

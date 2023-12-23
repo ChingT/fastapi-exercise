@@ -16,24 +16,24 @@ router = APIRouter()
 
 
 @router.get("/me")
-def read_current_user(current_user: CurrentUser) -> UserOut:
+async def read_current_user(current_user: CurrentUser) -> UserOut:
     """Get current user."""
     return current_user
 
 
-@router.put("/me")
-def update_current_user(
-    db: SessionDep, current_user: CurrentUser, updated_data: UserUpdate
+@router.patch("/me")
+async def update_current_user(
+    session: SessionDep, current_user: CurrentUser, updated_data: UserUpdate
 ) -> UserOut:
     """Update current user."""
-    return crud_user.update(db, db_obj=current_user, obj_in=updated_data)
+    return await crud_user.update(session, current_user, updated_data)
 
 
 @router.delete("/me", status_code=status.HTTP_204_NO_CONTENT)
-def delete_current_user(db: SessionDep, current_user: CurrentUser):
+async def delete_current_user(session: SessionDep, current_user: CurrentUser):
     """Delete current user."""
-    crud_user.delete(db, id=current_user.id)
-    return current_user
+    await crud_user.delete(session, current_user)
+    return {"msg": "User deleted"}
 
 
 @router.post(
@@ -41,23 +41,23 @@ def delete_current_user(db: SessionDep, current_user: CurrentUser):
     dependencies=[Depends(get_current_superuser)],
     status_code=status.HTTP_201_CREATED,
 )
-def create_user(db: SessionDep, user: UserCreate) -> UserOut:
+async def create_user(session: SessionDep, user: UserCreate) -> UserOut:
     """Only superuser can perform this operation."""
-    if crud_user.get_by_email(db, email=user.email):
+    if await crud_user.get_by_email(session, user.email):
         raise email_registered_exception
-    return crud_user.create(db, obj_in=user)
+    return await crud_user.create(session, user)
 
 
 @router.get("/", dependencies=[Depends(get_current_active_user)])
-def read_users(
-    db: SessionDep, offset: int = 0, limit: int = Query(default=100, le=100)
+async def read_users(
+    session: SessionDep, offset: int = 0, limit: int = Query(default=100, le=100)
 ) -> list[UserOut]:
-    return crud_user.list(db, offset=offset, limit=limit)
+    return await crud_user.list(session, offset, limit)
 
 
 @router.get("/{user_id}", dependencies=[Depends(get_current_active_user)])
-def read_user(db: SessionDep, user_id: UUID) -> UserOut:
-    db_obj = crud_user.get(db, id=user_id)
+async def read_user(session: SessionDep, user_id: UUID) -> UserOut:
+    db_obj = await crud_user.get(session, user_id)
     if db_obj is None:
         raise user_not_found_exception
     return db_obj
