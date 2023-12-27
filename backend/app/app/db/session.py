@@ -1,15 +1,23 @@
 from sqlalchemy.ext.asyncio import create_async_engine
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy.pool import NullPool, QueuePool
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 from app.core.config import settings
 
-async_engine = create_async_engine(settings.sqlite_database_url, pool_pre_ping=True)
+engine = create_async_engine(
+    str(settings.ASYNC_DATABASE_URI),
+    echo=False,
+    future=True,
+    # Asincio pytest works with NullPool
+    poolclass=NullPool if settings.ENVIRONMENT == "PYTEST" else QueuePool,
+)
+
 
 SessionLocal = sessionmaker(
     autocommit=False,
     autoflush=False,
-    bind=async_engine,
+    bind=engine,
     class_=AsyncSession,
     expire_on_commit=False,
 )

@@ -22,11 +22,10 @@ Note, complex types like lists are read as json-encoded strings.
 """
 
 import tomllib
-from functools import cached_property
 from pathlib import Path
 from typing import Literal
 
-from pydantic import AnyHttpUrl, EmailStr, PostgresDsn, computed_field, field_validator
+from pydantic import AnyHttpUrl, EmailStr, PostgresDsn, field_validator
 from pydantic_core.core_schema import FieldValidationInfo
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -68,24 +67,22 @@ class Settings(BaseSettings):
     # FIRST SUPERUSER
     FIRST_SUPERUSER_EMAIL: EmailStr
     FIRST_SUPERUSER_PASSWORD: str
+    ASYNC_DATABASE_URI: PostgresDsn | str = ""
 
-    @computed_field
-    @cached_property
-    def sqlalchemy_database_url(self) -> str:
-        return str(
-            PostgresDsn.build(
-                scheme="postgresql+psycopg",
-                username=self.POSTGRES_USER,
-                password=self.POSTGRES_PASSWORD,
-                host=self.POSTGRES_HOST,
-                port=self.POSTGRES_PORT,
-                path=self.POSTGRES_DB,
-            )
+    @field_validator("ASYNC_DATABASE_URI", mode="after")
+    def assemble_db_connection(
+        cls, v: str | None, info: FieldValidationInfo
+    ) -> PostgresDsn | str:
+        if v:
+            return v
+        return PostgresDsn.build(
+            scheme="postgresql+asyncpg",
+            username=info.data["DATABASE_USER"],
+            password=info.data["DATABASE_PASSWORD"],
+            host=info.data["DATABASE_HOST"],
+            port=info.data["DATABASE_PORT"],
+            path=info.data["DATABASE_NAME"],
         )
-
-    @cached_property
-    def sqlite_database_url(self) -> str:
-        return "sqlite+aiosqlite:///./app.sqlite"
 
     SMTP_TLS: bool = True
     SMTP_PORT: int | None = None

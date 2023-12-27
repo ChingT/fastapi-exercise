@@ -5,7 +5,7 @@ from sqlmodel.ext.asyncio.session import AsyncSession
 
 from app.core.config import settings
 from app.crud.user import crud_user
-from app.db.database import SessionLocal
+from app.db.session import SessionLocal
 from app.models.user import UserCreate
 
 logging.basicConfig(level=logging.INFO)

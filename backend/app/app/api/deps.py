@@ -12,7 +12,7 @@ from app.api.utils import (
     user_not_found_exception,
 )
 from app.core.token_utils import TokenType, decode_token
-from app.db.database import SessionLocal
+from app.db.session import SessionLocal
 from app.models.user import User
 
 

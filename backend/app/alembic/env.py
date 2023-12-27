@@ -20,7 +20,7 @@ target_metadata = SQLModel.metadata
 
 
 def get_url():
-    return settings.sqlite_database_url
+    return settings.ASYNC_DATABASE_URI
 
 
 def run_migrations_offline():
