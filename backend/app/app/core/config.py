@@ -103,6 +103,8 @@ class Settings(BaseSettings):
             and info.data["EMAILS_FROM_EMAIL"]
         )
 
+    EMAIL_TEST_USER: EmailStr = "test@example.com"
+
     model_config = SettingsConfigDict(
         env_file=f"{PROJECT_DIR}/.env", case_sensitive=True
     )
