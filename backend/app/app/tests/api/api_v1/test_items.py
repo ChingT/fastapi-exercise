@@ -1,31 +1,32 @@
+import pytest
 from fastapi import status
-from fastapi.testclient import TestClient
-from sqlalchemy.orm import Session
+from httpx import AsyncClient
+from sqlmodel.ext.asyncio.session import AsyncSession
 
 from app.tests.utils.item import create_random_item
 
 
-def test_create_item(
-    client: TestClient, superuser_token_headers: dict, db: Session
-) -> None:
+@pytest.mark.anyio()
+async def test_create_item(client: AsyncClient, superuser_token_headers: dict) -> None:
     data = {"title": "Foo", "description": "Fighters"}
-    response = client.post("/items/", headers=superuser_token_headers, json=data)
-    assert response.status_code == status.HTTP_200_OK
+    response = await client.post("/items/", headers=superuser_token_headers, json=data)
+    assert response.status_code == status.HTTP_201_CREATED
     content = response.json()
     assert content["title"] == data["title"]
     assert content["description"] == data["description"]
-    assert "id" in content
-    assert "owner_id" in content
+    assert content.get("id")
+    assert content.get("owner_id")
 
 
-def test_read_item(
-    client: TestClient, superuser_token_headers: dict, db: Session
+@pytest.mark.anyio()
+async def test_read_item(
+    client: AsyncClient, superuser_token_headers: dict, db: AsyncSession
 ) -> None:
-    item = create_random_item(db)
-    response = client.get(f"/items/{item.id}", headers=superuser_token_headers)
+    item = await create_random_item(db)
+    response = await client.get(f"/items/{item.id}", headers=superuser_token_headers)
     assert response.status_code == status.HTTP_200_OK
     content = response.json()
     assert content["title"] == item.title
     assert content["description"] == item.description
-    assert content["id"] == item.id
-    assert content["owner_id"] == item.owner_id
+    assert content["id"] == str(item.id)
+    assert content["owner_id"] == str(item.owner_id)

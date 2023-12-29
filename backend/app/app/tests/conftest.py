@@ -1,42 +1,42 @@
-from collections.abc import Generator
+from collections.abc import AsyncGenerator
 
 import pytest
-from fastapi.testclient import TestClient
-from sqlalchemy.orm import Session
+from httpx import AsyncClient
+from sqlmodel.ext.asyncio.session import AsyncSession
 
 from app.core.config import settings
-from app.db.session import engine
+from app.db.session import SessionLocal
 from app.main import app
 from app.tests.utils.user import (
     get_authentication_token_from_email,
     get_superuser_authentication_headers,
 )
 
-# import sys
-# from pathlib import Path
-# sys.path.append(str(Path(__file__).parent.parent.parent))
-# print(sys.path)
 
-
-@pytest.fixture(scope="session")
-def db() -> Generator:
-    with Session(engine) as session:
+@pytest.fixture()
+async def db() -> AsyncGenerator[AsyncSession, None]:
+    async with SessionLocal() as session:
         yield session
 
 
-@pytest.fixture(scope="module")
-def client() -> Generator:
-    with TestClient(app) as c:
-        yield c
+url = "http://localhost:8000"
 
 
-@pytest.fixture(scope="module")
-def superuser_token_headers(client: TestClient) -> dict[str, str]:
-    return get_superuser_authentication_headers(client)
+@pytest.fixture()
+async def client() -> AsyncGenerator[AsyncClient, None]:
+    async with AsyncClient(app=app, base_url=url) as client:
+        yield client
 
 
-@pytest.fixture(scope="module")
-def normal_user_token_headers(client: TestClient, db: Session) -> dict[str, str]:
-    return get_authentication_token_from_email(
-        client=client, email=settings.EMAIL_TEST_USER, db=db
+@pytest.fixture()
+async def superuser_token_headers(client: AsyncClient) -> dict[str, str]:
+    return await get_superuser_authentication_headers(client)
+
+
+@pytest.fixture()
+async def normal_user_token_headers(
+    client: AsyncClient, db: AsyncSession
+) -> dict[str, str]:
+    return await get_authentication_token_from_email(
+        db, client, settings.EMAIL_TEST_USER
     )

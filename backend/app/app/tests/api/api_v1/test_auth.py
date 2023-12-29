@@ -1,25 +1,27 @@
+import pytest
 from fastapi import status
-from fastapi.testclient import TestClient
+from httpx import AsyncClient
 
 from app.core.config import settings
 
 
-def test_get_access_token(client: TestClient) -> None:
+@pytest.mark.anyio()
+async def test_get_access_token(client: AsyncClient) -> None:
     login_data = {
         "username": settings.FIRST_SUPERUSER_EMAIL,
         "password": settings.FIRST_SUPERUSER_PASSWORD,
     }
-    r = client.post("/auth/access-token", data=login_data)
+    r = await client.post("/auth/access-token", data=login_data)
     tokens = r.json()
     assert r.status_code == status.HTTP_200_OK
-    assert "access_token" in tokens
     assert tokens["access_token"]
 
 
-def test_use_access_token(
-    client: TestClient, superuser_token_headers: dict[str, str]
+@pytest.mark.anyio()
+async def test_use_access_token(
+    client: AsyncClient, superuser_token_headers: dict[str, str]
 ) -> None:
-    r = client.post("/auth/test-token", headers=superuser_token_headers)
+    r = await client.post("/auth/test-token", headers=superuser_token_headers)
     result = r.json()
     assert r.status_code == status.HTTP_200_OK
     assert "email" in result

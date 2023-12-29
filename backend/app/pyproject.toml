@@ -39,7 +39,6 @@ build-backend = "poetry.core.masonry.api"
 requires = ["poetry-core>=1.0.0"]
 
 [tool.pytest.ini_options]
-addopts = "-v"
 asyncio_mode = "auto"
 filterwarnings = [
     # Passlib 1.7.4 depends on crypt - https://foss.heptapod.net/python-libs/passlib/-/issues/148
@@ -48,7 +47,7 @@ filterwarnings = [
 markers = ["pytest.mark.asyncio"]
 minversion = "6.0"
 testpaths = ["app/tests"]
-
+addopts = ["--import-mode=importlib"]
 
 [tool.ruff]
 target-version = "py312"
