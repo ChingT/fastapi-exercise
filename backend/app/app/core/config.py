@@ -26,7 +26,7 @@ from pathlib import Path
 from typing import Literal
 
 from pydantic import AnyHttpUrl, EmailStr, PostgresDsn, field_validator
-from pydantic_core.core_schema import FieldValidationInfo
+from pydantic_core.core_schema import ValidationInfo
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 PROJECT_DIR = Path(__file__).parent.parent.parent
@@ -71,7 +71,7 @@ class Settings(BaseSettings):
 
     @field_validator("ASYNC_DATABASE_URI", mode="after")
     def assemble_db_connection(
-        cls, v: str | None, info: FieldValidationInfo
+        cls, v: str | None, info: ValidationInfo
     ) -> PostgresDsn | str:
         if v:
             return v
@@ -96,7 +96,7 @@ class Settings(BaseSettings):
     EMAILS_ENABLED: bool = False
 
     @field_validator("EMAILS_ENABLED", mode="before")
-    def get_emails_enabled(cls, v: bool, info: FieldValidationInfo) -> bool:
+    def get_emails_enabled(cls, v: bool, info: ValidationInfo) -> bool:
         return bool(
             info.data["SMTP_HOST"]
             and info.data["SMTP_PORT"]
