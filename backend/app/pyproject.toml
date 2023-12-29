@@ -9,7 +9,7 @@ python = "^3.12"
 
 alembic = "^1.12.1"
 asyncpg = "^0.29.0"
-fastapi = "^0.105.0"
+fastapi = "^0.108.0"
 passlib = { extras = ["bcrypt"], version = "^1.7.4" }
 pydantic = { extras = ["dotenv", "email"], version = "^2.5.2" }
 pydantic-settings = "^2.1.0"
