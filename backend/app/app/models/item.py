@@ -4,7 +4,7 @@ from uuid import UUID
 from sqlmodel import Field, Relationship, SQLModel
 
 from .base_uuid_model import BaseUUIDModel
-from .user import User, UserOut
+from .user import User
 
 
 class ItemBase(SQLModel):
@@ -26,8 +26,7 @@ class Item(BaseUUIDModel, ItemBase, table=True):
     owner: User | None = Relationship(back_populates="items")
 
 
-class ItemOut(ItemBase):
-    id: UUID
+class ItemOut(BaseUUIDModel, ItemBase):
     updated_at: datetime
     created_at: datetime
-    owner: UserOut
+    owner_id: UUID
