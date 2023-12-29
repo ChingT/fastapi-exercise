@@ -23,11 +23,13 @@ This project draws inspiration from the following resources:
 - [x] Create registration and password-reset email templates.
 - [x] Implement validation for registration and password-reset via token.
 - [x] Introduce BaseUUIDModel.
+- [x] Implement Alembic migrations.
 - [x] Integrate Celery for asynchronous email sending tasks.
+- [x] Implement Asynchronous Database Management
+- [x] Implement async testing.
 - [ ] Implement docker compose
-- [ ] Implement testing.
-- [ ] Establish a sample one-to-one relationship.
 - [x] Implement a sample one-to-many relationship.
+- [ ] Establish a sample one-to-one relationship.
 - [ ] Create a sample many-to-many relationship.
 - [ ] Implement Pagination.
 - [ ] Enable functionality to upload images and store them using Minio.
