@@ -67,6 +67,7 @@ class Settings(BaseSettings):
     # FIRST SUPERUSER
     FIRST_SUPERUSER_EMAIL: EmailStr
     FIRST_SUPERUSER_PASSWORD: str
+    ASYNC_TEST_DATABASE_URI: PostgresDsn | str = ""
     ASYNC_DATABASE_URI: PostgresDsn | str = ""
 
     @field_validator("ASYNC_DATABASE_URI", mode="after")
@@ -103,7 +104,8 @@ class Settings(BaseSettings):
             and info.data["EMAILS_FROM_EMAIL"]
         )
 
-    EMAIL_TEST_USER: EmailStr = "test@example.com"
+    TEST_USER_EMAIL: EmailStr
+    TEST_USER_PASSWORD: str
 
     model_config = SettingsConfigDict(
         env_file=f"{PROJECT_DIR}/.env", case_sensitive=True
