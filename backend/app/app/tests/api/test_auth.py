@@ -15,14 +15,3 @@ async def test_get_access_token(client: AsyncClient, superuser: User) -> None:
     tokens = r.json()
     assert r.status_code == status.HTTP_200_OK
     assert tokens["access_token"]
-
-
-async def test_use_access_token(
-    client: AsyncClient, superuser_token_headers: dict[str, str]
-) -> None:
-    r = await client.post(
-        app.url_path_for("test_token"), headers=superuser_token_headers
-    )
-    result = r.json()
-    assert r.status_code == status.HTTP_200_OK
-    assert "email" in result

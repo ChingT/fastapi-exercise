@@ -2,7 +2,7 @@ import logging
 
 from fastapi import APIRouter, Body, HTTPException, status
 
-from app.api.deps import CurrentUser, FormDataDep, SessionDep
+from app.api.deps import FormDataDep, SessionDep
 from app.api.routers.users import user_not_found_exception
 from app.api.utils import (
     active_user_exception,
@@ -114,9 +114,3 @@ async def validate_reset_password(
 
     await crud_user.update(session, user, UserUpdatePassword(password=new_password))
     return {"msg": "Password updated successfully"}
-
-
-@router.post("/test-token")
-def test_token(current_user: CurrentUser) -> User:
-    """Test access token."""
-    return current_user
