@@ -7,21 +7,20 @@ services:
     volumes:
       - postgres_db:/var/lib/postgresql/data
     env_file:
-      - .env
+      - backend/app/.env
 
   backend:
-    depends_on:
-      - postgres
-    restart: "unless-stopped"
     build:
       context: ./backend
       dockerfile: backend.dockerfile
     env_file:
-      - .env
+      - backend/app/.env
     ports:
       - 8000:8000
     volumes:
       - ./backend/app:/app
+    depends_on:
+      - postgres
 
 volumes:
   postgres_db:
