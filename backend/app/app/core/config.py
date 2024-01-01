@@ -11,13 +11,6 @@ Pydantic priority ordering:
 For project name, version, description we use pyproject.toml
 For the rest, we use file `.env` (gitignored), see `.env.example`
 
-`DEFAULT_SQLALCHEMY_DATABASE_URL` and `TEST_SQLALCHEMY_DATABASE_URL`:
-Both are ment to be validated at the runtime, do not change unless you know
-what are you doing. All the two validators do is to build full URI (TCP protocol)
-to databases to avoid typo bugs.
-
-See https://pydantic-docs.helpmanual.io/usage/settings/
-
 Note, complex types like lists are read as json-encoded strings.
 """
 
@@ -57,34 +50,57 @@ class Settings(BaseSettings):
     VERSION: str = PYPROJECT_CONTENT["version"]
     DESCRIPTION: str = PYPROJECT_CONTENT["description"]
 
-    # # POSTGRESQL DEFAULT DATABASE
-    POSTGRES_HOST: str
-    POSTGRES_USER: str
-    POSTGRES_PASSWORD: str
-    POSTGRES_PORT: int
-    POSTGRES_DB: str
-
-    # FIRST SUPERUSER
+    # POSTGRESQL DEFAULT DATABASE
+    DATABASE_USER: str = "postgres"
+    DATABASE_PASSWORD: str = "postgres"
+    DATABASE_HOST: str = "postgres"
+    DATABASE_PORT: int = 5432
+    DATABASE_NAME: str = "postgres"
+    ASYNC_DATABASE_URI: str = ""
     FIRST_SUPERUSER_EMAIL: EmailStr
     FIRST_SUPERUSER_PASSWORD: str
-    ASYNC_TEST_DATABASE_URI: PostgresDsn | str = ""
-    ASYNC_DATABASE_URI: PostgresDsn | str = ""
 
     @field_validator("ASYNC_DATABASE_URI", mode="after")
-    def assemble_db_connection(
-        cls, v: str | None, info: ValidationInfo
-    ) -> PostgresDsn | str:
+    def assemble_db_connection(cls, v: str | None, info: ValidationInfo) -> str:
         if v:
             return v
-        return PostgresDsn.build(
-            scheme="postgresql+asyncpg",
-            username=info.data["DATABASE_USER"],
-            password=info.data["DATABASE_PASSWORD"],
-            host=info.data["DATABASE_HOST"],
-            port=info.data["DATABASE_PORT"],
-            path=info.data["DATABASE_NAME"],
+        return str(
+            PostgresDsn.build(
+                scheme="postgresql+asyncpg",
+                username=info.data["DATABASE_USER"],
+                password=info.data["DATABASE_PASSWORD"],
+                host=info.data["DATABASE_HOST"],
+                port=info.data["DATABASE_PORT"],
+                path=info.data["DATABASE_NAME"],
+            )
         )
 
+    # POSTGRESQL TEST DATABASE
+    TEST_DATABASE_USER: str = "test"
+    TEST_DATABASE_PASSWORD: str = "test"
+    TEST_DATABASE_HOST: str = "test"
+    TEST_DATABASE_PORT: int = 5432
+    TEST_DATABASE_NAME: str = "test"
+    ASYNC_TEST_DATABASE_URI: str = ""
+    TEST_USER_EMAIL: EmailStr
+    TEST_USER_PASSWORD: str
+
+    @field_validator("ASYNC_TEST_DATABASE_URI", mode="after")
+    def assemble_test_db_connection(cls, v: str | None, info: ValidationInfo) -> str:
+        if v:
+            return v
+        return str(
+            PostgresDsn.build(
+                scheme="postgresql+asyncpg",
+                username=info.data["TEST_DATABASE_USER"],
+                password=info.data["TEST_DATABASE_PASSWORD"],
+                host=info.data["TEST_DATABASE_HOST"],
+                port=info.data["TEST_DATABASE_PORT"],
+                path=info.data["TEST_DATABASE_NAME"],
+            )
+        )
+
+    EMAIL_TEMPLATES_DIR: str = "app/email-templates/build_html"
     SMTP_TLS: bool = True
     SMTP_PORT: int | None = None
     SMTP_HOST: str | None = None
@@ -92,8 +108,6 @@ class Settings(BaseSettings):
     SMTP_PASSWORD: str | None = None
     EMAILS_FROM_EMAIL: EmailStr | None = None
     EMAILS_FROM_NAME: str | None = None
-
-    EMAIL_TEMPLATES_DIR: str = "app/email-templates/build_html"
     EMAILS_ENABLED: bool = False
 
     @field_validator("EMAILS_ENABLED", mode="before")
@@ -103,9 +117,6 @@ class Settings(BaseSettings):
             and info.data["SMTP_PORT"]
             and info.data["EMAILS_FROM_EMAIL"]
         )
-
-    TEST_USER_EMAIL: EmailStr
-    TEST_USER_PASSWORD: str
 
     model_config = SettingsConfigDict(
         env_file=f"{PROJECT_DIR}/.env", case_sensitive=True
