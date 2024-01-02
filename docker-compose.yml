@@ -1,26 +1,30 @@
-version: "3.7"
+version: "3.8"
 
 services:
-  postgres:
+  db:
     restart: unless-stopped
-    image: postgres:16.0
+    image: postgres:16.1
     volumes:
       - postgres_db:/var/lib/postgresql/data
     env_file:
       - backend/app/.env
+    expose:
+      - "5432"
 
   backend:
     build:
       context: ./backend
-      dockerfile: backend.dockerfile
     env_file:
       - backend/app/.env
+    command:
+      "sh -c '/app/prestart.sh && uvicorn app.main:app --host 0.0.0.0 --port
+      8000 --reload'"
     ports:
       - 8000:8000
     volumes:
       - ./backend/app:/app
     depends_on:
-      - postgres
+      - db
 
 volumes:
   postgres_db:
