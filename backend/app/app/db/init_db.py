@@ -14,14 +14,10 @@ logger = logging.getLogger(__name__)
 
 async def main() -> None:
     async with SessionLocal() as session:
-        await init_db(session)
+        await create_superuser(session)
 
 
-async def init_db(session: AsyncSession) -> None:
-    # Tables should be created with Alembic migrations
-    # But if you don't want to use migrations, create
-    # the tables un-commenting the line Base.metadata.create_all(bind=engine)
-
+async def create_superuser(session: AsyncSession) -> None:
     if user := await crud_user.get_by_email(session, settings.FIRST_SUPERUSER_EMAIL):
         logging.info("Superuser %s exists in database", user)
         return
