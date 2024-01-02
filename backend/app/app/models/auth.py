@@ -11,7 +11,7 @@ class RefreshTokenRequest(SQLModel):
 class TokensResponse(SQLModel):
     model_config = ConfigDict(from_attributes=True)
 
-    token_type: str
+    token_type: str = "bearer"
     access_token: str
     refresh_token: str
 
@@ -21,3 +21,8 @@ class JWTTokenPayload(SQLModel):
     exp: datetime
     nbf: datetime
     type: str
+
+
+class NewPassword(SQLModel):
+    token: str
+    new_password: str

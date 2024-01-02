@@ -1,5 +1,5 @@
 from sqlmodel import SQLModel
 
 
-class Msg(SQLModel):
+class Message(SQLModel):
     msg: str

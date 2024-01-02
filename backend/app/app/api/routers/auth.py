@@ -18,8 +18,8 @@ from app.core.token_utils import (
     generate_tokens_response,
 )
 from app.crud.user import crud_user
-from app.models.auth import RefreshTokenRequest, TokensResponse
-from app.models.msg import Msg
+from app.models.auth import NewPassword, RefreshTokenRequest, TokensResponse
+from app.models.msg import Message
 from app.models.user import User, UserCreate, UserRecoverPassword, UserUpdatePassword
 from app.utils import send_new_account_email, send_reset_password_email
 
@@ -55,7 +55,7 @@ async def refresh_token(
 
 
 @router.post("/registration")
-async def register_user(session: SessionDep, data: UserCreate) -> Msg:
+async def register_user(session: SessionDep, data: UserCreate) -> Message:
     """Register new user."""
     email = data.email
     if await crud_user.get_by_email(session, email):
@@ -64,13 +64,13 @@ async def register_user(session: SessionDep, data: UserCreate) -> Msg:
     await crud_user.create(session, data)
     token = generate_registration_validation_token(email)
     send_new_account_email.delay(email, token)
-    return {"msg": "New account email sent"}
+    return Message(message="New account email sent")
 
 
 @router.post("/registration/validation")
 async def validate_register_user(
     session: SessionDep, token: str = Body(..., embed=True)
-) -> Msg:
+) -> Message:
     """Validate registration token and activate the account."""
     email = decode_token(token, TokenType.REGISTER)
     user = await crud_user.get_by_email(session, email)
@@ -80,11 +80,11 @@ async def validate_register_user(
         raise active_user_exception
 
     await crud_user.activate(session, user)
-    return {"msg": "Account activated successfully"}
+    return Message(message="Account activated successfully")
 
 
 @router.post("/password-reset")
-async def reset_password(session: SessionDep, data: UserRecoverPassword) -> Msg:
+async def reset_password(session: SessionDep, data: UserRecoverPassword) -> Message:
     """Send password reset email."""
     email = data.email
     user = await crud_user.get_by_email(session, email)
@@ -95,15 +95,13 @@ async def reset_password(session: SessionDep, data: UserRecoverPassword) -> Msg:
 
     token = generate_password_reset_validation_token(email)
     send_reset_password_email.delay(email, token)
-    return {"msg": "Password recovery email sent"}
+    return Message(message="Password recovery email sent")
 
 
 @router.post("/password-reset/validation")
-async def validate_reset_password(
-    session: SessionDep, token: str = Body(...), new_password: str = Body(...)
-) -> Msg:
+async def validate_reset_password(session: SessionDep, body: NewPassword) -> Message:
     """Validate password reset token and reset the password."""
-    email = decode_token(token, TokenType.PASSWORD_RESET)
+    email = decode_token(body.token, TokenType.PASSWORD_RESET)
     if not email:
         raise credentials_exception
     user = await crud_user.get_by_email(session, email)
@@ -112,5 +110,7 @@ async def validate_reset_password(
     if not user.is_active:
         raise inactive_user_exception
 
-    await crud_user.update(session, user, UserUpdatePassword(password=new_password))
-    return {"msg": "Password updated successfully"}
+    await crud_user.update(
+        session, user, UserUpdatePassword(password=body.new_password)
+    )
+    return Message(message="Password updated successfully")

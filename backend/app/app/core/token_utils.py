@@ -24,9 +24,7 @@ def generate_tokens_response(subject: str | int) -> TokensResponse:
     refresh_token = create_token(
         subject, settings.REFRESH_TOKEN_EXPIRE_HOURS, TokenType.REFRESH
     )
-    return TokensResponse(
-        token_type="Bearer", access_token=access_token, refresh_token=refresh_token
-    )
+    return TokensResponse(access_token=access_token, refresh_token=refresh_token)
 
 
 def create_token(sub: str | int, exp_hours: float, type: TokenType) -> str:
