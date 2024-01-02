@@ -51,54 +51,48 @@ class Settings(BaseSettings):
     DESCRIPTION: str = PYPROJECT_CONTENT["description"]
 
     # POSTGRESQL DEFAULT DATABASE
-    DATABASE_USER: str = "postgres"
-    DATABASE_PASSWORD: str = "postgres"
-    DATABASE_HOST: str = "postgres"
-    DATABASE_PORT: int = 5432
-    DATABASE_NAME: str = "postgres"
+    POSTGRES_USER: str = "postgres"
+    POSTGRES_PASSWORD: str = "postgres"
+    POSTGRES_HOST: str = "postgres"
+    POSTGRES_PORT: int = 5432
+    POSTGRES_DB: str = "postgres"
     ASYNC_DATABASE_URI: str = ""
     FIRST_SUPERUSER_EMAIL: EmailStr
     FIRST_SUPERUSER_PASSWORD: str
 
     @field_validator("ASYNC_DATABASE_URI", mode="after")
     def assemble_db_connection(cls, v: str | None, info: ValidationInfo) -> str:
-        if v:
-            return v
-        return str(
-            PostgresDsn.build(
-                scheme="postgresql+asyncpg",
-                username=info.data["DATABASE_USER"],
-                password=info.data["DATABASE_PASSWORD"],
-                host=info.data["DATABASE_HOST"],
-                port=info.data["DATABASE_PORT"],
-                path=info.data["DATABASE_NAME"],
-            )
+        v = v or PostgresDsn.build(
+            scheme="postgresql+asyncpg",
+            username=info.data["POSTGRES_USER"],
+            password=info.data["POSTGRES_PASSWORD"],
+            host=info.data["POSTGRES_HOST"],
+            port=info.data["POSTGRES_PORT"],
+            path=info.data["POSTGRES_DB"],
         )
+        return str(v)
 
     # POSTGRESQL TEST DATABASE
-    TEST_DATABASE_USER: str = "test"
-    TEST_DATABASE_PASSWORD: str = "test"
-    TEST_DATABASE_HOST: str = "test"
-    TEST_DATABASE_PORT: int = 5432
-    TEST_DATABASE_NAME: str = "test"
+    TEST_POSTGRES_USER: str = "test"
+    TEST_POSTGRES_PASSWORD: str = "test"
+    TEST_POSTGRES_HOST: str = "test"
+    TEST_POSTGRES_PORT: int = 5432
+    TEST_POSTGRES_DB: str = "test"
     ASYNC_TEST_DATABASE_URI: str = ""
     TEST_USER_EMAIL: EmailStr
     TEST_USER_PASSWORD: str
 
     @field_validator("ASYNC_TEST_DATABASE_URI", mode="after")
     def assemble_test_db_connection(cls, v: str | None, info: ValidationInfo) -> str:
-        if v:
-            return v
-        return str(
-            PostgresDsn.build(
-                scheme="postgresql+asyncpg",
-                username=info.data["TEST_DATABASE_USER"],
-                password=info.data["TEST_DATABASE_PASSWORD"],
-                host=info.data["TEST_DATABASE_HOST"],
-                port=info.data["TEST_DATABASE_PORT"],
-                path=info.data["TEST_DATABASE_NAME"],
-            )
+        v = v or PostgresDsn.build(
+            scheme="postgresql+asyncpg",
+            username=info.data["TEST_POSTGRES_USER"],
+            password=info.data["TEST_POSTGRES_PASSWORD"],
+            host=info.data["TEST_POSTGRES_HOST"],
+            port=info.data["TEST_POSTGRES_PORT"],
+            path=info.data["TEST_POSTGRES_DB"],
         )
+        return str(v)
 
     EMAIL_TEMPLATES_DIR: str = "app/email-templates/build_html"
     SMTP_TLS: bool = True
