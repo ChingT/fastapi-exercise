@@ -43,7 +43,7 @@ def upgrade():
         sa.Column("updated_at", sa.DateTime(), nullable=True),
         sa.Column("created_at", sa.DateTime(), nullable=True),
         sa.Column("title", sqlmodel.sql.sqltypes.AutoString(), nullable=False),
-        sa.Column("owner_id", sa.Integer(), nullable=True),
+        sa.Column("owner_id", sqlmodel.sql.sqltypes.GUID(), nullable=True),
         sa.ForeignKeyConstraint(
             ["owner_id"],
             ["user.id"],
