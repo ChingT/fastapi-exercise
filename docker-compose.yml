@@ -8,12 +8,11 @@ services:
       - postgres_db:/var/lib/postgresql/data
     env_file:
       - backend/app/.env
-    expose:
-      - "5432"
+    ports:
+      - 5432:5432
 
   backend:
-    build:
-      context: ./backend
+    build: ./backend
     env_file:
       - backend/app/.env
     command:
@@ -29,12 +28,11 @@ services:
   redis_server:
     image: redis:alpine
     env_file: backend/app/.env
-    expose:
-      - 6379
+    ports:
+      - 6379:6379
 
   celery_worker:
-    build:
-      context: ./backend
+    build: ./backend
     env_file: backend/app/.env
     command: "celery -A app.main.celery worker -l info"
     volumes:
@@ -42,6 +40,18 @@ services:
     depends_on:
       - db
       - redis_server
+
+  flower:
+    build: ./backend
+    command: "celery --broker=redis://redis_server:6379 flower --port=5555"
+    env_file:
+      - backend/app/.env
+    ports:
+      - 5555:5555
+    depends_on:
+      - backend
+      - redis_server
+      - celery_worker
 
 volumes:
   postgres_db:
