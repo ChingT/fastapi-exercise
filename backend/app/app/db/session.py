@@ -5,14 +5,8 @@ from sqlmodel.ext.asyncio.session import AsyncSession
 
 from app.core.config import settings
 
-if settings.ENVIRONMENT == "PYTEST":
-    sqlalchemy_database_uri = settings.ASYNC_TEST_DATABASE_URI
-else:
-    sqlalchemy_database_uri = settings.ASYNC_DATABASE_URI
-
-
 engine = create_async_engine(
-    sqlalchemy_database_uri,
+    settings.ASYNC_DATABASE_URI,
     echo=False,
     future=True,
     # Asincio pytest works with NullPool

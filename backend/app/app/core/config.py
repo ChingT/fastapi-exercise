@@ -57,8 +57,6 @@ class Settings(BaseSettings):
     POSTGRES_PORT: int = 5432
     POSTGRES_DB: str = "postgres"
     ASYNC_DATABASE_URI: str = ""
-    FIRST_SUPERUSER_EMAIL: EmailStr
-    FIRST_SUPERUSER_PASSWORD: str
 
     @field_validator("ASYNC_DATABASE_URI", mode="after")
     def assemble_db_connection(cls, v: str | None, info: ValidationInfo) -> str:
@@ -72,27 +70,10 @@ class Settings(BaseSettings):
         )
         return str(v)
 
-    # POSTGRESQL TEST DATABASE
-    TEST_POSTGRES_USER: str = "test"
-    TEST_POSTGRES_PASSWORD: str = "test"
-    TEST_POSTGRES_HOST: str = "test"
-    TEST_POSTGRES_PORT: int = 5432
-    TEST_POSTGRES_DB: str = "test"
-    ASYNC_TEST_DATABASE_URI: str = ""
+    FIRST_SUPERUSER_EMAIL: EmailStr
+    FIRST_SUPERUSER_PASSWORD: str
     TEST_USER_EMAIL: EmailStr
     TEST_USER_PASSWORD: str
-
-    @field_validator("ASYNC_TEST_DATABASE_URI", mode="after")
-    def assemble_test_db_connection(cls, v: str | None, info: ValidationInfo) -> str:
-        v = v or PostgresDsn.build(
-            scheme="postgresql+asyncpg",
-            username=info.data["TEST_POSTGRES_USER"],
-            password=info.data["TEST_POSTGRES_PASSWORD"],
-            host=info.data["TEST_POSTGRES_HOST"],
-            port=info.data["TEST_POSTGRES_PORT"],
-            path=info.data["TEST_POSTGRES_DB"],
-        )
-        return str(v)
 
     EMAIL_TEMPLATES_DIR: str = "app/email-templates/build_html"
     SMTP_TLS: bool = True

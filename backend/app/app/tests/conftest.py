@@ -42,7 +42,7 @@ async def session(testdb_setup_sessionmaker) -> AsyncGenerator[AsyncSession, Non
         yield session
 
         # delete all data from all tables after test
-        for table in target_metadata.tables.values():
+        for table in target_metadata.sorted_tables[::-1]:
             await session.exec(delete(table))
         await session.commit()
 

@@ -1,6 +1,7 @@
 .vscode
 *.sqlite
 logs
+docker-stack*.yml
 
 # postgresql
 data

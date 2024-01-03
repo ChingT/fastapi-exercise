@@ -27,7 +27,7 @@ This project draws inspiration from the following resources:
 - [x] Integrate Celery for asynchronous email sending tasks.
 - [x] Implement Asynchronous Database Management
 - [x] Implement async testing.
-- [ ] Implement docker compose
+- [x] Implement docker compose
 - [x] Implement a sample one-to-many relationship.
 - [ ] Establish a sample one-to-one relationship.
 - [ ] Create a sample many-to-many relationship.
