@@ -38,7 +38,7 @@ def send_email(
 @shared_task
 def send_test_email(email_to: str) -> None:
     project_name = settings.PROJECT_NAME
-    subject = f"{project_name} - Test email"
+    subject = f"{project_name} - Test"
     path = Path(settings.EMAIL_TEMPLATES_DIR) / "test_email.html"
     with path.open() as f:
         template_str = f.read()

@@ -21,7 +21,7 @@ from app.crud.user import crud_user
 from app.models.auth import NewPassword, RefreshTokenRequest, TokensResponse
 from app.models.msg import Message
 from app.models.user import User, UserCreate, UserRecoverPassword, UserUpdatePassword
-from app.utils import send_new_account_email, send_reset_password_email
+from app.utils import send_new_account_email, send_reset_password_email, send_test_email
 
 router = APIRouter()
 
@@ -115,3 +115,10 @@ async def validate_reset_password(session: SessionDep, body: NewPassword) -> Mes
         session, user, UserUpdatePassword(password=body.new_password)
     )
     return Message(msg="Password updated successfully")
+
+
+@router.post("/test-email")
+async def test_email(data: UserRecoverPassword) -> Message:
+    """Register new user."""
+    send_test_email.delay(data.email)
+    return Message(msg="Test email sent")
